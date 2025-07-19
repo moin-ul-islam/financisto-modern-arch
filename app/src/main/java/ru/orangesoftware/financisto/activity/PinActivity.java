@@ -20,7 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mtramin.rxfingerprint.RxFingerprint;
+//import com.mtramin.rxfingerprint.RxFingerprint;
 
 import io.reactivex.disposables.Disposable;
 import ru.orangesoftware.financisto.R;
@@ -47,9 +47,9 @@ public class PinActivity extends Activity implements PinView.PinListener {
         String pin = MyPreferences.getPin(this);
         if (pin == null) {
             onSuccess(null);
-        } else if (RxFingerprint.isAvailable(this) && MyPreferences.isPinLockUseFingerprint(this)) {
-            setContentView(R.layout.lock_fingerprint);
-            askForFingerprint();
+//        } else if (RxFingerprint.isAvailable(this) && MyPreferences.isPinLockUseFingerprint(this)) {
+//            setContentView(R.layout.lock_fingerprint);
+//            askForFingerprint();
         } else {
             usePinLock();
         }
@@ -61,37 +61,37 @@ public class PinActivity extends Activity implements PinView.PinListener {
         setContentView(v.getView());
     }
 
-    private void askForFingerprint() {
-        View usePinButton = findViewById(R.id.use_pin);
-        if (MyPreferences.isUseFingerprintFallbackToPinEnabled(this)) {
-            usePinButton.setOnClickListener(v -> {
-                disposeFingerprintListener();
-                usePinLock();
-            });
-        } else {
-            usePinButton.setVisibility(View.GONE);
-        }
-        disposable = RxFingerprint.authenticate(this).subscribe(
-                result -> {
-                    switch (result.getResult()) {
-                        case AUTHENTICATED:
-                            setFingerprintStatus(R.string.fingerprint_auth_success, R.drawable.ic_check_circle_black_48dp, R.color.material_teal);
-                            handler.postDelayed(() -> onSuccess(null), 200);
-                            break;
-                        case FAILED:
-                            setFingerprintStatus(R.string.fingerprint_auth_failed, R.drawable.ic_error_black_48dp, R.color.material_orange);
-                            break;
-                        case HELP:
-                            Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
-                            break;
-                    }
-                },
-                throwable -> {
-                    setFingerprintStatus(R.string.fingerprint_error, R.drawable.ic_error_black_48dp, R.color.holo_red_dark);
-                    Toast.makeText(this, throwable.getMessage(), Toast.LENGTH_LONG).show();
-                }
-        );
-    }
+//    private void askForFingerprint() {
+//        View usePinButton = findViewById(R.id.use_pin);
+//        if (MyPreferences.isUseFingerprintFallbackToPinEnabled(this)) {
+//            usePinButton.setOnClickListener(v -> {
+//                disposeFingerprintListener();
+//                usePinLock();
+//            });
+//        } else {
+//            usePinButton.setVisibility(View.GONE);
+//        }
+//        disposable = RxFingerprint.authenticate(this).subscribe(
+//                result -> {
+//                    switch (result.getResult()) {
+//                        case AUTHENTICATED:
+//                            setFingerprintStatus(R.string.fingerprint_auth_success, R.drawable.ic_check_circle_black_48dp, R.color.material_teal);
+//                            handler.postDelayed(() -> onSuccess(null), 200);
+//                            break;
+//                        case FAILED:
+//                            setFingerprintStatus(R.string.fingerprint_auth_failed, R.drawable.ic_error_black_48dp, R.color.material_orange);
+//                            break;
+//                        case HELP:
+//                            Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
+//                            break;
+//                    }
+//                },
+//                throwable -> {
+//                    setFingerprintStatus(R.string.fingerprint_error, R.drawable.ic_error_black_48dp, R.color.holo_red_dark);
+//                    Toast.makeText(this, throwable.getMessage(), Toast.LENGTH_LONG).show();
+//                }
+//        );
+//    }
 
     private void setFingerprintStatus(int messageResId, int iconResId, int colorResId) {
         TextView status = findViewById(R.id.fingerprint_status);
