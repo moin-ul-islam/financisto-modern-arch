@@ -1,3 +1,7 @@
 enableFeaturePreview('VERSION_CATALOGS')
 
 include ':app'
+include ':core:common'
+include ':core:ui'
+include ':repository'
+include ':usecase'

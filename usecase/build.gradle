@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.library'
+    alias(libs.plugins.kotlin.android)
+}
+
+android {
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    namespace 'ru.orangesoftware.financisto.usecase'
+    
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation project(':repository')
+    implementation libs.bundles.kotlin
+    
+    // Reactive streams
+    implementation libs.bundles.rxjava.bundle
+    
+    // Testing
+    testImplementation libs.junit
+}
