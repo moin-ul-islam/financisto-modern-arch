@@ -31,6 +31,9 @@ import ru.orangesoftware.financisto.blotter.AccountTotalCalculationTask;
 import ru.orangesoftware.financisto.blotter.BlotterFilter;
 import ru.orangesoftware.financisto.blotter.BlotterTotalCalculationTask;
 import ru.orangesoftware.financisto.blotter.TotalCalculationTask;
+import ru.orangesoftware.financisto.bridge.AccountBridge;
+import ru.orangesoftware.financisto.bridge.BlotterBridge;
+import ru.orangesoftware.financisto.bridge.TransactionBridge;
 import ru.orangesoftware.financisto.dialog.TransactionInfoDialog;
 import ru.orangesoftware.financisto.filter.WhereFilter;
 import ru.orangesoftware.financisto.model.Account;
@@ -76,6 +79,11 @@ public class BlotterActivity extends AbstractListActivity {
     protected boolean isAccountBlotter = false;
     protected boolean showAllBlotterButtons = true;
 
+    // Phase 1.2: Bridge pattern for gradual migration
+    private BlotterBridge blotterBridge;
+    private AccountBridge accountBridge;
+    private TransactionBridge transactionBridge;
+
     public BlotterActivity(int layoutId) {
         super(layoutId);
     }
@@ -111,6 +119,12 @@ public class BlotterActivity extends AbstractListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Phase 1.2: Initialize bridges for gradual migration
+        blotterBridge = new BlotterBridge(db);
+        accountBridge = new AccountBridge(db);
+        transactionBridge = new TransactionBridge(db);
+        
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater = new NodeInflater(layoutInflater);
         integrityCheck();
@@ -233,7 +247,7 @@ public class BlotterActivity extends AbstractListActivity {
                 long accountId = blotterFilter.getAccountId();
                 if (accountId != -1) {
                     // get account type
-                    Account account = db.getAccount(accountId);
+                    Account account = accountBridge.getAccount(accountId);
                     AccountType type = AccountType.valueOf(account.type);
                     if (type.isCreditCard) {
                         // Show menu for Credit Cards - bill
@@ -273,7 +287,7 @@ public class BlotterActivity extends AbstractListActivity {
 
             case R.id.opt_menu_bill:
                 if (accountId != -1) {
-                    Account account = db.getAccount(accountId);
+                    Account account = accountBridge.getAccount(accountId);
 
                     // call credit card bill activity sending account id
                     if (account.paymentDay > 0 && account.closingDay > 0) {
@@ -450,9 +464,9 @@ public class BlotterActivity extends AbstractListActivity {
     @Override
     protected Cursor createCursor() {
         if (isAccountBlotter) {
-            return db.getBlotterForAccount(blotterFilter);
+            return blotterBridge.getBlotterForAccount(blotterFilter);
         } else {
-            return db.getBlotter(blotterFilter);
+            return blotterBridge.getBlotter(blotterFilter);
         }
     }
 
@@ -515,7 +529,7 @@ public class BlotterActivity extends AbstractListActivity {
         boolean edit = data.getBooleanExtra(SelectTemplateActivity.EDIT_AFTER_CREATION, false);
         if (templateId > 0) {
             long id = duplicateTransaction(templateId, multiplier);
-            Transaction t = db.getTransaction(id);
+            Transaction t = transactionBridge.getTransaction(id);
             if (t.fromAmount == 0 || edit) {
                 new BlotterOperations(this, db, id).asNewFromTemplate().editTransaction();
             }
@@ -530,7 +544,7 @@ public class BlotterActivity extends AbstractListActivity {
     protected void applyFilter() {
         long accountId = blotterFilter.getAccountId();
         if (accountId != -1) {
-            Account a = db.getAccount(accountId);
+            Account a = accountBridge.getAccount(accountId);
             bAdd.setVisibility(a != null && a.isActive ? View.VISIBLE : View.GONE);
             if (showAllBlotterButtons) {
                 bTransfer.setVisibility(a != null && a.isActive ? View.VISIBLE : View.GONE);

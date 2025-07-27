@@ -55,16 +55,44 @@ Establish the foundation for modular architecture without breaking existing func
 ### Phase 1.2: Feature Flags & Bridge System
 
 **Prompt to Agent**:
-"Implement a feature flag system for gradual rollout. Create a FeatureFlags class in :core:common module with flags for each major component (USE_NEW_BLOTTER, USE_NEW_ACCOUNTS, USE_REPOSITORY_PATTERN, etc.). All flags should default to false. Create a Bridge pattern base class that allows legacy Activities to optionally delegate to new ViewModels when flags are enabled. The bridge should handle the decision of whether to use legacy or new implementation."
+"Implement a feature flag system and composition-based bridges for gradual rollout. 
+
+1. Create a FeatureFlags object in :core:common module with compile-time constants for each major component (USE_NEW_BLOTTER, USE_NEW_ACCOUNTS, USE_REPOSITORY_PATTERN, etc.). All flags should default to false.
+
+2. Create bridge classes using composition pattern in :core:common module:
+   - BlotterBridge: Contains methods like loadTransactions(), applyFilter(), deleteTransaction() 
+   - AccountBridge: Contains methods like loadAccounts(), saveAccount(), deleteAccount()
+   - TransactionBridge: Contains methods like loadTransaction(), saveTransaction(), validateTransaction()
+
+3. Bridge classes should:
+   - Take the legacy Activity/DatabaseAdapter as constructor parameters (composition not inheritance)
+   - Use feature flags to decide whether to call legacy methods or new repository/use case methods
+   - Have minimal logic - just routing between old and new implementations
+   - Return the same data types that legacy code expects
+   - Handle the flag switching internally without exposing complexity to Activities
+
+4. Modify existing Activities only by:
+   - Adding a single line to create the bridge instance in onCreate()
+   - Replacing direct DatabaseAdapter calls with bridge method calls
+   - No other changes to Activity structure or logic
+
+5. Create Kotlin extension functions in :core:common to make bridge usage cleaner from Java Activities.
+
+Do NOT create any ViewModels or repositories yet - bridges should prepare for them but call legacy methods when flags are disabled."
 
 **Success Criteria**:
-- FeatureFlags class with comprehensive flags
-- Bridge pattern allows seamless switching
-- All flags disabled by default - no behavioral changes
+- FeatureFlags object with comprehensive compile-time constants
+- Bridge classes use composition and contain minimal routing logic
+- Activities require minimal changes (just bridge instantiation + method call replacements)
+- Bridge methods have identical signatures to legacy methods they replace
+- All flags disabled by default - zero behavioral changes
+- Extension functions make Java-Kotlin interop seamless
 
 **Validation**:
-- App behavior unchanged with all flags false
-- Feature flags can be toggled at runtime for testing
+- App behavior completely unchanged with all flags false  
+- Bridge method calls produce identical results to direct legacy calls
+- Activities compile and run without any functional differences
+- Feature flags can be toggled at compile time for testing
 
 ### Phase 1.3: Modern Dependencies Integration
 

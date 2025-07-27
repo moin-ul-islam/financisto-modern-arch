@@ -6,6 +6,7 @@ repositories {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk libs.versions.compileSdk.get().toInteger()
@@ -23,6 +24,17 @@ android {
                 arguments = [
                         "androidManifestFile": "$projectDir/src/main/AndroidManifest.xml".toString()
                 ]
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs 'src/main/java'
+            }
+            kotlin {
+                srcDirs 'src/main/kotlin'
             }
         }
     }
@@ -75,6 +87,9 @@ dependencies {
     implementation project(':core:ui')
     implementation project(':repository')
     implementation project(':usecase')
+    
+    // Kotlin dependencies for modernization
+    implementation libs.kotlin.stdlib
     
     implementation libs.androidx.legacy.support.v4
     implementation libs.androidx.appcompat
