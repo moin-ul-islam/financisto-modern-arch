@@ -16,13 +16,15 @@ import ru.orangesoftware.financisto.utils.MyPreferences;
  * Main Application class for Financisto.
  * 
  * Migration Strategy for Modern Architecture:
- * Phase 1: Currently using Android Annotations (@EApplication) for legacy DI
- * Phase 2: Will gradually migrate to Hilt DI by:
- *   - Adding @HiltAndroidApp annotation alongside @EApplication
- *   - Migrating individual components one by one
- *   - Eventually removing Android Annotations entirely
+ * Phase 1: ✅ COMPLETED - Modern dependencies integrated
+ * Phase 2: 🚀 IN PROGRESS - Hilt DI Integration Setup
+ *   - Creating Hilt modules for gradual migration
+ *   - Setting up modern repositories and use cases
+ *   - Maintaining Android Annotations for legacy code
+ *   - Will fully migrate to Hilt in later phases
  * 
- * Dependencies are already configured for both DI systems to coexist.
+ * Dependencies are configured for both DI systems to coexist.
+ * Hilt will be introduced gradually without replacing @EApplication initially.
  */
 
 @EApplication
