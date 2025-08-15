@@ -143,4 +143,20 @@ interface TransactionDao {
         ORDER BY datetime DESC
     """)
     suspend fun searchTransactionsByNote(query: String): List<TransactionEntity>
+    
+    /**
+     * Get transactions for running balance calculation.
+     * This is specifically ordered for running balance processing:
+     * - Filters by account (from_account_id OR to_account_id)
+     * - Excludes templates
+     * - Orders by datetime ASC, then by id ASC for chronological processing
+     * - Handles both regular transactions and transfers
+     */
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE (from_account_id = :accountId OR to_account_id = :accountId)
+        AND is_template = 0
+        ORDER BY datetime ASC, _id ASC
+    """)
+    suspend fun getTransactionsForRunningBalance(accountId: Long): List<TransactionEntity>
 }

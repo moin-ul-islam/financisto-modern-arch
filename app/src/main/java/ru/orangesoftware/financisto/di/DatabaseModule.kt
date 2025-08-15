@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ru.orangesoftware.financisto.data.database.FinancistoDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
+import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.db.DatabaseHelper
 import javax.inject.Singleton
@@ -55,5 +56,13 @@ object DatabaseModule {
     @Provides
     fun provideTransactionDao(database: FinancistoDatabase): TransactionDao {
         return database.transactionDao()
+    }
+
+    /**
+     * Provides RunningBalanceDao from Room database
+     */
+    @Provides
+    fun provideRunningBalanceDao(database: FinancistoDatabase): RunningBalanceDao {
+        return database.runningBalanceDao()
     }
 }

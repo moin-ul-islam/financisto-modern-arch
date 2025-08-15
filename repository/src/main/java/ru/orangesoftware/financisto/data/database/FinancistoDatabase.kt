@@ -6,9 +6,11 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
+import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.data.model.AccountEntity
 import ru.orangesoftware.financisto.data.model.CurrencyEntity
+import ru.orangesoftware.financisto.data.model.RunningBalanceEntity
 import ru.orangesoftware.financisto.data.model.TransactionEntity
 
 /**
@@ -26,7 +28,8 @@ import ru.orangesoftware.financisto.data.model.TransactionEntity
     entities = [
         AccountEntity::class,
         CurrencyEntity::class,
-        TransactionEntity::class
+        TransactionEntity::class,
+        RunningBalanceEntity::class
     ],
     version = 1,
     exportSchema = true
@@ -35,6 +38,7 @@ abstract class FinancistoDatabase : RoomDatabase() {
     
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
+    abstract fun runningBalanceDao(): RunningBalanceDao
     
     companion object {
         const val DATABASE_NAME = "financisto_modern.db"

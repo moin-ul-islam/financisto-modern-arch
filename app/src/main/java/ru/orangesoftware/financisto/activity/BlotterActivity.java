@@ -44,9 +44,22 @@ import ru.orangesoftware.financisto.utils.MenuItemInfo;
 import ru.orangesoftware.financisto.utils.MyPreferences;
 import ru.orangesoftware.financisto.view.NodeInflater;
 
+import dagger.hilt.EntryPoint;
+import dagger.hilt.InstallIn;
+import dagger.hilt.android.EntryPointAccessors;
+import dagger.hilt.components.SingletonComponent;
+
 import static ru.orangesoftware.financisto.utils.MyPreferences.isQuickMenuEnabledForTransaction;
 
 public class BlotterActivity extends AbstractListActivity {
+
+    @EntryPoint
+    @InstallIn(SingletonComponent.class)
+    interface BlotterActivityEntryPoint {
+        BlotterBridge getBlotterBridge();
+        AccountBridge getAccountBridge();
+        TransactionBridge getTransactionBridge();
+    }
 
     public static final String SAVE_FILTER = "saveFilter";
     public static final String EXTRA_FILTER_ACCOUNTS = "filterAccounts";
@@ -120,10 +133,13 @@ public class BlotterActivity extends AbstractListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Phase 1.2: Initialize bridges for gradual migration
-        blotterBridge = new BlotterBridge(db);
-        accountBridge = new AccountBridge(db);
-        transactionBridge = new TransactionBridge(db);
+        // Phase 1.2: Initialize bridges using Hilt manual injection
+        BlotterActivityEntryPoint entryPoint = EntryPointAccessors.fromApplication(
+            getApplicationContext(), BlotterActivityEntryPoint.class);
+        
+        blotterBridge = entryPoint.getBlotterBridge();
+        accountBridge = entryPoint.getAccountBridge();
+        transactionBridge = entryPoint.getTransactionBridge();
         
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater = new NodeInflater(layoutInflater);
