@@ -31,9 +31,9 @@ import javax.inject.Singleton
 @Singleton
 class BlotterBridge @Inject constructor(
     private val legacyDb: DatabaseAdapter,
-    private val transactionRepository: TransactionRepository,
-    private val getTransactionsUseCase: GetTransactionsUseCase,
-    private val getTransactionsForAccountUseCase: GetTransactionsForAccountUseCase
+    private val transactionRepository: TransactionRepository?,
+    private val getTransactionsUseCase: GetTransactionsUseCase?,
+    private val getTransactionsForAccountUseCase: GetTransactionsForAccountUseCase?
 ) {
     
     /**
@@ -89,6 +89,14 @@ class BlotterBridge @Inject constructor(
      */
     private fun getBlotterModern(filter: WhereFilter): Cursor {
         return try {
+            // If modern dependencies are null, fall back to legacy
+            if (getTransactionsUseCase == null) {
+                if (FeatureFlags.ENABLE_MODERNIZATION_LOGS) {
+                    android.util.Log.d("BlotterBridge", "Modern dependencies not available, falling back to legacy")
+                }
+                return legacyDb.getBlotter(filter)
+            }
+            
             if (FeatureFlags.ENABLE_MODERNIZATION_LOGS) {
                 android.util.Log.d("BlotterBridge", "Using modern getBlotter implementation")
             }
@@ -96,7 +104,7 @@ class BlotterBridge @Inject constructor(
             // For now, we still delegate to legacy to maintain Cursor compatibility
             // Future: Convert Room entities to Cursor or migrate Activities to use modern data structures
             val transactions = runBlocking { 
-                getTransactionsUseCase.execute() 
+                getTransactionsUseCase?.execute() ?: emptyList()
             }
             
             if (FeatureFlags.ENABLE_MODERNIZATION_LOGS) {

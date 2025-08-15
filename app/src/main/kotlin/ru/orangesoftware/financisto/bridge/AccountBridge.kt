@@ -31,19 +31,19 @@ import javax.inject.Singleton
 @Singleton
 class AccountBridge @Inject constructor(
     private val legacyDb: DatabaseAdapter,
-    private val accountRepository: AccountRepository,
-    private val getAccountsUseCase: GetAccountsUseCase,
-    private val getAccountByIdUseCase: GetAccountByIdUseCase,
-    private val createAccountUseCase: CreateAccountUseCase,
-    private val updateAccountUseCase: UpdateAccountUseCase,
-    private val deleteAccountUseCase: DeleteAccountUseCase
+    private val accountRepository: AccountRepository?,
+    private val getAccountsUseCase: GetAccountsUseCase?,
+    private val getAccountByIdUseCase: GetAccountByIdUseCase?,
+    private val createAccountUseCase: CreateAccountUseCase?,
+    private val updateAccountUseCase: UpdateAccountUseCase?,
+    private val deleteAccountUseCase: DeleteAccountUseCase?
 ) {
     
     /**
      * Gets an account by ID with routing based on feature flags.
      */
     fun getAccount(accountId: Long): Account? {
-        return if (FeatureFlags.USE_ACCOUNT_BRIDGE) {
+        return if (FeatureFlags.USE_ACCOUNT_BRIDGE && getAccountByIdUseCase != null) {
             getAccountModern(accountId)
         } else {
             legacyDb.getAccount(accountId)
@@ -97,12 +97,20 @@ class AccountBridge @Inject constructor(
      */
     private fun getAccountModern(accountId: Long): Account? {
         return try {
+            // If modern dependencies are null, fall back to legacy
+            if (getAccountByIdUseCase == null) {
+                if (FeatureFlags.ENABLE_MODERNIZATION_LOGS) {
+                    android.util.Log.d("AccountBridge", "Modern dependencies not available, falling back to legacy")
+                }
+                return legacyDb.getAccount(accountId)
+            }
+            
             if (FeatureFlags.ENABLE_MODERNIZATION_LOGS) {
                 android.util.Log.d("AccountBridge", "Using modern getAccount implementation for ID: $accountId")
             }
             
             val accountEntity = runBlocking { 
-                getAccountByIdUseCase.execute(accountId) 
+                getAccountByIdUseCase!!.execute(accountId) 
             }
             
             val result = accountEntity?.toLegacyModel()
@@ -131,7 +139,7 @@ class AccountBridge @Inject constructor(
             }
             
             val accountEntities = runBlocking { 
-                getAccountsUseCase.execute() 
+                getAccountsUseCase?.execute() ?: emptyList()
             }
             
             val result = accountEntities.map { it.toLegacyModel() }
@@ -167,13 +175,13 @@ class AccountBridge @Inject constructor(
             val result = if (account.id <= 0) {
                 // Create new account
                 val createResult = runBlocking { 
-                    createAccountUseCase.execute(accountEntity) 
+                    createAccountUseCase?.execute(accountEntity) ?: Result.failure(Exception("Use case not available"))
                 }
                 createResult.getOrElse { -1L }
             } else {
                 // Update existing account
                 val updateResult = runBlocking { 
-                    updateAccountUseCase.execute(accountEntity) 
+                    updateAccountUseCase?.execute(accountEntity) ?: Result.failure(Exception("Use case not available"))
                 }
                 if (updateResult.getOrElse { false }) account.id else -1L
             }
@@ -197,7 +205,7 @@ class AccountBridge @Inject constructor(
             }
             
             val result = runBlocking { 
-                deleteAccountUseCase.execute(accountId) 
+                deleteAccountUseCase?.execute(accountId) ?: Result.failure(Exception("Use case not available"))
             }
             
             result.getOrElse { false }

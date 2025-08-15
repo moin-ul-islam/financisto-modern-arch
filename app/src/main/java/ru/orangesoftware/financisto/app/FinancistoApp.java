@@ -8,6 +8,7 @@ import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EApplication;
 
+import dagger.hilt.android.HiltAndroidApp;
 import ru.orangesoftware.financisto.bus.GreenRobotBus;
 import ru.orangesoftware.financisto.export.drive.GoogleDriveClient;
 import ru.orangesoftware.financisto.utils.MyPreferences;
@@ -17,14 +18,14 @@ import ru.orangesoftware.financisto.utils.MyPreferences;
  * 
  * Migration Strategy for Modern Architecture:
  * Phase 1: ✅ COMPLETED - Modern dependencies integrated
- * Phase 2: 🚀 IN PROGRESS - Hilt DI Integration Setup
- *   - Creating Hilt modules for gradual migration
- *   - Setting up modern repositories and use cases
- *   - Maintaining Android Annotations for legacy code
- *   - Will fully migrate to Hilt in later phases
+ * Phase 2: ✅ COMPLETED - Hilt DI Integration Setup
+ *   - Android Annotations remains for legacy compatibility  
+ *   - Modern repositories and use cases available via separate Hilt components
+ *   - Legacy code continues to use Android Annotations
+ *   - Bridge pattern enables gradual migration between systems
  * 
  * Dependencies are configured for both DI systems to coexist.
- * Hilt will be introduced gradually without replacing @EApplication initially.
+ * Hilt components are accessed separately to avoid conflicts with @EApplication.
  */
 
 @EApplication

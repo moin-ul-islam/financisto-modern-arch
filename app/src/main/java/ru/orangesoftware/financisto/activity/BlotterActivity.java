@@ -33,6 +33,7 @@ import ru.orangesoftware.financisto.blotter.BlotterTotalCalculationTask;
 import ru.orangesoftware.financisto.blotter.TotalCalculationTask;
 import ru.orangesoftware.financisto.bridge.AccountBridge;
 import ru.orangesoftware.financisto.bridge.BlotterBridge;
+import ru.orangesoftware.financisto.bridge.BridgeManager;
 import ru.orangesoftware.financisto.bridge.TransactionBridge;
 import ru.orangesoftware.financisto.dialog.TransactionInfoDialog;
 import ru.orangesoftware.financisto.filter.WhereFilter;
@@ -44,22 +45,9 @@ import ru.orangesoftware.financisto.utils.MenuItemInfo;
 import ru.orangesoftware.financisto.utils.MyPreferences;
 import ru.orangesoftware.financisto.view.NodeInflater;
 
-import dagger.hilt.EntryPoint;
-import dagger.hilt.InstallIn;
-import dagger.hilt.android.EntryPointAccessors;
-import dagger.hilt.components.SingletonComponent;
-
 import static ru.orangesoftware.financisto.utils.MyPreferences.isQuickMenuEnabledForTransaction;
 
 public class BlotterActivity extends AbstractListActivity {
-
-    @EntryPoint
-    @InstallIn(SingletonComponent.class)
-    interface BlotterActivityEntryPoint {
-        BlotterBridge getBlotterBridge();
-        AccountBridge getAccountBridge();
-        TransactionBridge getTransactionBridge();
-    }
 
     public static final String SAVE_FILTER = "saveFilter";
     public static final String EXTRA_FILTER_ACCOUNTS = "filterAccounts";
@@ -133,17 +121,24 @@ public class BlotterActivity extends AbstractListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Phase 1.2: Initialize bridges using Hilt manual injection
-        BlotterActivityEntryPoint entryPoint = EntryPointAccessors.fromApplication(
-            getApplicationContext(), BlotterActivityEntryPoint.class);
-        
-        blotterBridge = entryPoint.getBlotterBridge();
-        accountBridge = entryPoint.getAccountBridge();
-        transactionBridge = entryPoint.getTransactionBridge();
+        // Phase 1.2: Bridges are initialized lazily in createCursor() or can be initialized here
+        // No need to initialize here since createCursor() handles it
         
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater = new NodeInflater(layoutInflater);
         integrityCheck();
+    }
+    
+    /**
+     * Initialize bridges using BridgeManager for Hilt access.
+     * This method is called lazily to ensure proper initialization timing.
+     */
+    private void initializeBridges() {
+        if (blotterBridge == null) {
+            blotterBridge = BridgeManager.getBlotterBridge(this);
+            accountBridge = BridgeManager.getAccountBridge(this);
+            transactionBridge = BridgeManager.getTransactionBridge(this);
+        }
     }
 
     @Override
@@ -479,6 +474,11 @@ public class BlotterActivity extends AbstractListActivity {
 
     @Override
     protected Cursor createCursor() {
+        // Lazy initialization of bridges to ensure they're available when needed
+        if (blotterBridge == null) {
+            initializeBridges();
+        }
+        
         if (isAccountBlotter) {
             return blotterBridge.getBlotterForAccount(blotterFilter);
         } else {

@@ -41,19 +41,19 @@ import javax.inject.Singleton
 @Singleton
 class TransactionBridge @Inject constructor(
     private val legacyDb: DatabaseAdapter,
-    private val transactionRepository: TransactionRepository,
-    private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
-    private val getTransactionsUseCase: GetTransactionsUseCase,
-    private val getTransactionsForAccountUseCase: GetTransactionsForAccountUseCase,
-    private val createTransactionUseCase: CreateTransactionUseCase,
-    private val updateTransactionUseCase: UpdateTransactionUseCase,
-    private val deleteTransactionUseCase: DeleteTransactionUseCase,
-    private val getTransactionsByDateRangeUseCase: GetTransactionsByDateRangeUseCase,
-    private val getTransactionsByCategoryUseCase: GetTransactionsByCategoryUseCase,
-    private val rebuildRunningBalanceForAccountUseCase: RebuildRunningBalanceForAccountUseCase,
-    private val rebuildAllRunningBalancesUseCase: RebuildAllRunningBalancesUseCase,
-    private val getLastRunningBalanceForAccountUseCase: GetLastRunningBalanceForAccountUseCase,
-    private val getAccountBalanceAtTimeUseCase: GetAccountBalanceAtTimeUseCase
+    private val transactionRepository: TransactionRepository?,
+    private val getTransactionByIdUseCase: GetTransactionByIdUseCase?,
+    private val getTransactionsUseCase: GetTransactionsUseCase?,
+    private val getTransactionsForAccountUseCase: GetTransactionsForAccountUseCase?,
+    private val createTransactionUseCase: CreateTransactionUseCase?,
+    private val updateTransactionUseCase: UpdateTransactionUseCase?,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase?,
+    private val getTransactionsByDateRangeUseCase: GetTransactionsByDateRangeUseCase?,
+    private val getTransactionsByCategoryUseCase: GetTransactionsByCategoryUseCase?,
+    private val rebuildRunningBalanceForAccountUseCase: RebuildRunningBalanceForAccountUseCase?,
+    private val rebuildAllRunningBalancesUseCase: RebuildAllRunningBalancesUseCase?,
+    private val getLastRunningBalanceForAccountUseCase: GetLastRunningBalanceForAccountUseCase?,
+    private val getAccountBalanceAtTimeUseCase: GetAccountBalanceAtTimeUseCase?
 ) {
     
     /**
@@ -200,7 +200,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val transactionEntity = runBlocking { 
-                getTransactionByIdUseCase.execute(transactionId) 
+                getTransactionByIdUseCase?.execute(transactionId)
             }
             
             val result = transactionEntity?.toLegacyModel() ?: Transaction()
@@ -229,7 +229,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val transactionEntities = runBlocking { 
-                getTransactionsUseCase.execute() 
+                getTransactionsUseCase?.execute() ?: emptyList()
             }
             
             transactionEntities.map { it.toLegacyModel() }
@@ -251,7 +251,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val transactionEntities = runBlocking { 
-                getTransactionsForAccountUseCase.execute(accountId) 
+                getTransactionsForAccountUseCase?.execute(accountId) ?: emptyList()
             }
             
             transactionEntities.map { it.toLegacyModel() }
@@ -277,13 +277,13 @@ class TransactionBridge @Inject constructor(
             val result = if (transaction.id <= 0) {
                 // Create new transaction
                 val createResult = runBlocking { 
-                    createTransactionUseCase.execute(transactionEntity) 
+                    createTransactionUseCase?.execute(transactionEntity) ?: Result.failure(Exception("Use case not available"))
                 }
                 createResult.getOrElse { -1L }
             } else {
                 // Update existing transaction
                 val updateResult = runBlocking { 
-                    updateTransactionUseCase.execute(transactionEntity) 
+                    updateTransactionUseCase?.execute(transactionEntity) ?: Result.failure(Exception("Use case not available"))
                 }
                 if (updateResult.getOrElse { false }) transaction.id else -1L
             }
@@ -307,7 +307,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val result = runBlocking { 
-                deleteTransactionUseCase.execute(transactionId) 
+                deleteTransactionUseCase?.execute(transactionId) ?: Result.failure(Exception("Use case not available"))
             }
             
             result.getOrElse { false }
@@ -334,7 +334,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val transactionEntities = runBlocking { 
-                getTransactionsByDateRangeUseCase.execute(startDate, endDate) 
+                getTransactionsByDateRangeUseCase?.execute(startDate, endDate) ?: emptyList()
             }
             
             transactionEntities.map { it.toLegacyModel() }
@@ -356,7 +356,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val transactionEntities = runBlocking { 
-                getTransactionsByCategoryUseCase.execute(categoryId) 
+                getTransactionsByCategoryUseCase?.execute(categoryId) ?: emptyList()
             }
             
             transactionEntities.map { it.toLegacyModel() }
@@ -378,7 +378,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val result = runBlocking { 
-                rebuildRunningBalanceForAccountUseCase.execute(accountId) 
+                rebuildRunningBalanceForAccountUseCase?.execute(accountId) ?: Result.failure(Exception("Use case not available"))
             }
             
             result.getOrElse { false }
@@ -405,7 +405,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val result = runBlocking { 
-                rebuildAllRunningBalancesUseCase.execute() 
+                rebuildAllRunningBalancesUseCase?.execute() ?: Result.failure(Exception("Use case not available"))
             }
             
             result.getOrElse { false }
@@ -432,7 +432,7 @@ class TransactionBridge @Inject constructor(
             }
             
             val result = runBlocking { 
-                getLastRunningBalanceForAccountUseCase.execute(accountId) 
+                getLastRunningBalanceForAccountUseCase?.execute(accountId) ?: Result.failure(Exception("Use case not available"))
             }
             
             result.getOrElse { 0L }
