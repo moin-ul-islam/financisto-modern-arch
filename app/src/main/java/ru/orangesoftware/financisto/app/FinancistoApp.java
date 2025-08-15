@@ -12,6 +12,19 @@ import ru.orangesoftware.financisto.bus.GreenRobotBus;
 import ru.orangesoftware.financisto.export.drive.GoogleDriveClient;
 import ru.orangesoftware.financisto.utils.MyPreferences;
 
+/**
+ * Main Application class for Financisto.
+ * 
+ * Migration Strategy for Modern Architecture:
+ * Phase 1: Currently using Android Annotations (@EApplication) for legacy DI
+ * Phase 2: Will gradually migrate to Hilt DI by:
+ *   - Adding @HiltAndroidApp annotation alongside @EApplication
+ *   - Migrating individual components one by one
+ *   - Eventually removing Android Annotations entirely
+ * 
+ * Dependencies are already configured for both DI systems to coexist.
+ */
+
 @EApplication
 public class FinancistoApp extends MultiDexApplication {
 

@@ -7,6 +7,8 @@ repositories {
 
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'dagger.hilt.android.plugin'
 
 android {
     compileSdk libs.versions.compileSdk.get().toInteger()
@@ -90,14 +92,28 @@ dependencies {
     
     // Kotlin dependencies for modernization
     implementation libs.kotlin.stdlib
+    implementation libs.bundles.coroutines
     
+    // Modern Android Architecture Components
+    implementation libs.bundles.lifecycle
+    implementation libs.bundles.navigation
+    implementation libs.bundles.room
+    kapt libs.androidx.room.compiler
+    
+    // Hilt Dependency Injection (new - coexisting with Android Annotations)
+    implementation libs.bundles.hilt
+    kapt libs.hilt.compiler
+    kapt libs.androidx.hilt.compiler
+    
+    // Legacy AndroidX support
     implementation libs.androidx.legacy.support.v4
     implementation libs.androidx.appcompat
     implementation libs.androidx.multidex
 
     implementation libs.bundles.play.services
 
-    annotationProcessor libs.androidannotations
+    // Android Annotations (legacy - keeping for coexistence)
+    kapt libs.androidannotations
     implementation libs.androidannotations.api
 
     implementation libs.gson
