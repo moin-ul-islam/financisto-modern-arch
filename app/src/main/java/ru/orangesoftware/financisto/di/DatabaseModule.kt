@@ -7,36 +7,53 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ru.orangesoftware.financisto.data.database.FinancistoDatabase
+import ru.orangesoftware.financisto.data.dao.AccountDao
+import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.db.DatabaseHelper
 import javax.inject.Singleton
 
 /**
  * Hilt module for database-related dependencies.
  * 
- * This module will provide Room database instances and DAOs
- * when we migrate from the legacy SQLite implementation.
- * 
- * For now, it provides access to the legacy DatabaseHelper
- * to maintain compatibility during migration.
+ * This module provides both legacy DatabaseHelper and modern Room database
+ * to support gradual migration. Both systems can coexist during the transition.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    /**
+     * Provides legacy DatabaseHelper for backward compatibility
+     */
     @Provides
     @Singleton
     fun provideDatabaseHelper(@ApplicationContext context: Context): DatabaseHelper {
         return DatabaseHelper(context)
     }
 
-    // TODO: Add Room database providers when migration is ready
-    // @Provides
-    // @Singleton
-    // fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-    //     return Room.databaseBuilder(
-    //         context,
-    //         AppDatabase::class.java,
-    //         "financisto_database"
-    //     ).build()
-    // }
+    /**
+     * Provides modern Room database
+     */
+    @Provides
+    @Singleton
+    fun provideFinancistoDatabase(@ApplicationContext context: Context): FinancistoDatabase {
+        return FinancistoDatabase.create(context)
+    }
+
+    /**
+     * Provides AccountDao from Room database
+     */
+    @Provides
+    fun provideAccountDao(database: FinancistoDatabase): AccountDao {
+        return database.accountDao()
+    }
+
+    /**
+     * Provides TransactionDao from Room database
+     */
+    @Provides
+    fun provideTransactionDao(database: FinancistoDatabase): TransactionDao {
+        return database.transactionDao()
+    }
 }

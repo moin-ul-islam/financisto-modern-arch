@@ -8,6 +8,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import ru.orangesoftware.financisto.repository.modern.AccountRepositoryImpl
+import ru.orangesoftware.financisto.repository.modern.TransactionRepository
+import ru.orangesoftware.financisto.repository.modern.TransactionRepositoryImpl
 import javax.inject.Singleton
 
 /**
@@ -26,12 +28,11 @@ abstract class RepositoryModule {
         accountRepositoryImpl: AccountRepositoryImpl
     ): AccountRepository
 
-    // TODO: Add other repository bindings as they are migrated
-    // @Binds
-    // @Singleton  
-    // abstract fun bindTransactionRepository(
-    //     transactionRepositoryImpl: TransactionRepositoryImpl
-    // ): TransactionRepository
+    @Binds
+    @Singleton  
+    abstract fun bindTransactionRepository(
+        transactionRepositoryImpl: TransactionRepositoryImpl
+    ): TransactionRepository
 }
 
 /**

@@ -2,8 +2,10 @@ package ru.orangesoftware.financisto.repository.modern
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import ru.orangesoftware.financisto.data.dao.AccountDao
+import ru.orangesoftware.financisto.data.model.AccountEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,64 +13,81 @@ import javax.inject.Singleton
  * Modern repository interface for account data operations.
  * 
  * This interface defines the contract for account data access
- * using modern patterns (Coroutines, Flow) instead of RxJava.
- * 
- * Note: Currently using Any type placeholders since we need to properly
- * set up shared model classes in a future phase.
+ * using modern patterns (Coroutines, Flow) with Room entities.
  */
 interface AccountRepository {
-    suspend fun getAllAccounts(): List<Any>
-    fun getAllAccountsFlow(): Flow<List<Any>>
-    suspend fun getAccountById(id: Long): Any?
-    suspend fun insertAccount(account: Any): Long
-    suspend fun updateAccount(account: Any): Boolean
+    suspend fun getAllAccounts(): List<AccountEntity>
+    fun getAllAccountsFlow(): Flow<List<AccountEntity>>
+    suspend fun getAccountById(id: Long): AccountEntity?
+    suspend fun insertAccount(account: AccountEntity): Long
+    suspend fun updateAccount(account: AccountEntity): Boolean
     suspend fun deleteAccount(id: Long): Boolean
+    suspend fun getAccountsIncludedInTotals(): List<AccountEntity>
+    suspend fun searchAccounts(query: String): List<AccountEntity>
+    suspend fun updateAccountBalance(accountId: Long, amount: Long, lastTransactionDate: Long)
 }
 
 /**
- * Implementation of AccountRepository using Hilt DI.
+ * Implementation of AccountRepository using Room DAOs and Hilt DI.
  * 
- * This shows how modern repositories will be structured:
- * - Uses Hilt for dependency injection
- * - Uses Coroutines instead of RxJava
+ * This repository implementation:
+ * - Uses Room DAOs for type-safe database operations
+ * - Uses Coroutines for async operations
  * - Uses Flow for reactive data streams
- * - Maintains clean separation of concerns
- * 
- * Currently uses placeholder implementations, but will use proper
- * dependencies when shared model classes are available.
+ * - Provides error handling and transaction safety
  */
 @Singleton
 class AccountRepositoryImpl @Inject constructor(
+    private val accountDao: AccountDao,
     private val ioDispatcher: CoroutineDispatcher
 ) : AccountRepository {
 
-    override suspend fun getAllAccounts(): List<Any> {
-        // TODO: Replace with proper implementation using Room DAOs
-        // For now, return empty list as placeholder
-        return emptyList()
+    override suspend fun getAllAccounts(): List<AccountEntity> = withContext(ioDispatcher) {
+        accountDao.getAllAccounts()
     }
 
-    override fun getAllAccountsFlow(): Flow<List<Any>> = flow {
-        emit(getAllAccounts())
-    }.flowOn(ioDispatcher)
+    override fun getAllAccountsFlow(): Flow<List<AccountEntity>> = 
+        accountDao.getAllAccountsFlow().flowOn(ioDispatcher)
 
-    override suspend fun getAccountById(id: Long): Any? {
-        // TODO: Replace with proper implementation using Room DAOs
-        return null
+    override suspend fun getAccountById(id: Long): AccountEntity? = withContext(ioDispatcher) {
+        accountDao.getAccountById(id)
     }
 
-    override suspend fun insertAccount(account: Any): Long {
-        // TODO: Replace with proper implementation using Room DAOs
-        return -1L
+    override suspend fun insertAccount(account: AccountEntity): Long = withContext(ioDispatcher) {
+        accountDao.insertAccount(account)
     }
 
-    override suspend fun updateAccount(account: Any): Boolean {
-        // TODO: Replace with proper implementation using Room DAOs
-        return false
+    override suspend fun updateAccount(account: AccountEntity): Boolean = withContext(ioDispatcher) {
+        try {
+            accountDao.updateAccount(account)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    override suspend fun deleteAccount(id: Long): Boolean {
-        // TODO: Replace with proper implementation using Room DAOs
-        return false
+    override suspend fun deleteAccount(id: Long): Boolean = withContext(ioDispatcher) {
+        try {
+            accountDao.deleteAccountById(id)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    override suspend fun getAccountsIncludedInTotals(): List<AccountEntity> = withContext(ioDispatcher) {
+        accountDao.getAccountsIncludedInTotals()
+    }
+
+    override suspend fun searchAccounts(query: String): List<AccountEntity> = withContext(ioDispatcher) {
+        accountDao.searchAccounts(query)
+    }
+
+    override suspend fun updateAccountBalance(
+        accountId: Long, 
+        amount: Long, 
+        lastTransactionDate: Long
+    ) = withContext(ioDispatcher) {
+        accountDao.updateAccountBalance(accountId, amount, lastTransactionDate)
     }
 }
