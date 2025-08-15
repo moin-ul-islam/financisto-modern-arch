@@ -19,6 +19,18 @@ androidxAppcompat = "1.1.0"
 androidxMultidex = "2.0.1"
 androidxTestCore = "1.2.0"
 
+# Modern AndroidX Architecture Components
+androidxLifecycle = "2.6.2"
+androidxViewModel = "2.6.2"
+androidxLivedata = "2.6.2"
+androidxNavigation = "2.7.2"
+androidxRoom = "2.4.3"
+androidxFragment = "1.6.1"
+
+# Hilt Dependency Injection
+hilt = "2.48"
+hiltAndroidxCompiler = "1.0.0"
+
 # Google Play Services
 playServicesBase = "11.0.2"
 playServicesDrive = "11.0.2"
@@ -87,9 +99,30 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 # Kotlin
-kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
 kotlin-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotlin-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+
+# Modern AndroidX Architecture Components
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidxLivedata" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "androidxLifecycle" }
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "androidxNavigation" }
+androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidxNavigation" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidxFragment" }
+
+# Room Database
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidxRoom" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidxRoom" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidxRoom" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "androidxRoom" }
+
+# Hilt Dependency Injection
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltAndroidxCompiler" }
 
 [bundles]
 kotlin = ["kotlin-stdlib", "kotlin-coroutines-core", "kotlin-coroutines-android"]
@@ -97,7 +130,15 @@ play-services = ["play-services-base", "play-services-drive", "play-services-plu
 rxjava-bundle = ["rxjava", "rxandroid", "reactive-streams"]
 testing = ["junit", "androidx-test-core", "robolectric"]
 
+# Modern Architecture Component Bundles
+lifecycle = ["androidx-lifecycle-viewmodel-ktx", "androidx-lifecycle-livedata-ktx", "androidx-lifecycle-runtime-ktx", "androidx-lifecycle-viewmodel-savedstate"]
+navigation = ["androidx-navigation-fragment-ktx", "androidx-navigation-ui-ktx", "androidx-fragment-ktx"]
+room = ["androidx-room-runtime", "androidx-room-ktx"]
+hilt = ["hilt-android"]
+coroutines = ["kotlin-coroutines-core", "kotlin-coroutines-android"]
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 anvil = { id = "com.squareup.anvil", version.ref = "anvil" }

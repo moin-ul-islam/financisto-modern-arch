@@ -7,11 +7,14 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10"
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.48'
     }
 }
 
 plugins {
     alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.anvil)
 }
 
@@ -21,6 +24,26 @@ allprojects {
         google()
         maven {
             url "https://maven.scijava.org/content/repositories/public"
+        }
+    }
+    
+    // Force consistent Kotlin versions to avoid conflicts
+    configurations.all {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-stdlib:1.7.10"
+            force "org.jetbrains.kotlin:kotlin-stdlib-common:1.7.10"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10"
+            force "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
+            force "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+            
+            // Exclude conflicting kotlin stdlib versions
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.jetbrains.kotlin' && details.requested.name.startsWith('kotlin-stdlib')) {
+                    details.useVersion '1.7.10'
+                    details.because 'Force consistent Kotlin version'
+                }
+            }
         }
     }
 }
