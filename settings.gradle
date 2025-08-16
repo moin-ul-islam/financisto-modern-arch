@@ -1,6 +1,7 @@
 enableFeaturePreview('VERSION_CATALOGS')
 
 include ':app'
+include ':app-playground'
 include ':core:common'
 include ':core:ui'
 include ':repository'

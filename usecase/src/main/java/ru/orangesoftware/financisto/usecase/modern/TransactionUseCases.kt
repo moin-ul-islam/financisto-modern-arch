@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.model.TransactionEntity
+import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.repository.modern.TransactionRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,7 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class GetTransactionsUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     /**
@@ -51,7 +52,7 @@ class GetTransactionsUseCase @Inject constructor(
 @Singleton
 class GetTransactionsForAccountUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(accountId: Long): List<TransactionEntity> = withContext(ioDispatcher) {
@@ -74,7 +75,7 @@ class GetTransactionsForAccountUseCase @Inject constructor(
 @Singleton
 class GetTransactionByIdUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(transactionId: Long): TransactionEntity? = withContext(ioDispatcher) {
@@ -92,7 +93,7 @@ class GetTransactionByIdUseCase @Inject constructor(
 @Singleton
 class CreateTransactionUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(transaction: TransactionEntity): Result<Long> = withContext(ioDispatcher) {
@@ -111,7 +112,7 @@ class CreateTransactionUseCase @Inject constructor(
 @Singleton
 class UpdateTransactionUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(transaction: TransactionEntity): Result<Boolean> = withContext(ioDispatcher) {
@@ -130,7 +131,7 @@ class UpdateTransactionUseCase @Inject constructor(
 @Singleton
 class DeleteTransactionUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(transactionId: Long): Result<Boolean> = withContext(ioDispatcher) {
@@ -149,7 +150,7 @@ class DeleteTransactionUseCase @Inject constructor(
 @Singleton
 class GetTransactionsByDateRangeUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(startDate: Long, endDate: Long): List<TransactionEntity> = withContext(ioDispatcher) {
@@ -167,7 +168,7 @@ class GetTransactionsByDateRangeUseCase @Inject constructor(
 @Singleton
 class GetTransactionsByCategoryUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(categoryId: Long): List<TransactionEntity> = withContext(ioDispatcher) {

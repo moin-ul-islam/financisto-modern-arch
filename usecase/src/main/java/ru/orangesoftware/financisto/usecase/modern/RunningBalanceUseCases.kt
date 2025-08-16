@@ -8,6 +8,7 @@ import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.data.model.RunningBalanceEntity
 import ru.orangesoftware.financisto.data.model.TransactionEntity
+import ru.orangesoftware.financisto.di.IoDispatcher
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +23,7 @@ import javax.inject.Singleton
 class RebuildRunningBalanceForAccountUseCase @Inject constructor(
     private val transactionDao: TransactionDao,
     private val runningBalanceDao: RunningBalanceDao,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     /**
@@ -160,7 +161,7 @@ class RebuildRunningBalanceForAccountUseCase @Inject constructor(
 class RebuildAllRunningBalancesUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
     private val rebuildRunningBalanceForAccountUseCase: RebuildRunningBalanceForAccountUseCase,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(): Result<Boolean> = withContext(ioDispatcher) {
@@ -191,7 +192,7 @@ class RebuildAllRunningBalancesUseCase @Inject constructor(
 @Singleton
 class GetLastRunningBalanceForAccountUseCase @Inject constructor(
     private val runningBalanceDao: RunningBalanceDao,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(accountId: Long): Result<Long> = withContext(ioDispatcher) {
@@ -211,7 +212,7 @@ class GetLastRunningBalanceForAccountUseCase @Inject constructor(
 @Singleton
 class GetAccountBalanceAtTimeUseCase @Inject constructor(
     private val runningBalanceDao: RunningBalanceDao,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(accountId: Long, datetime: Long): Result<Long> = withContext(ioDispatcher) {

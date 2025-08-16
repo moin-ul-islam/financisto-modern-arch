@@ -1,0 +1,99 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
+}
+
+android {
+    namespace 'ru.orangesoftware.financisto.playground'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "ru.orangesoftware.financisto.playground"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0-playground"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            applicationIdSuffix ".debug"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    viewBinding {
+        enabled = true
+    }
+}
+
+dependencies {
+    // Module dependencies
+    implementation project(':core:common')
+    implementation project(':core:ui')
+    implementation project(':repository')
+    implementation project(':usecase')
+
+    // Modern Android dependencies
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.activity.ktx
+    implementation libs.androidx.fragment.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.material
+
+    // Hilt dependency injection
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+
+    // Room database
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    kapt libs.androidx.room.compiler
+
+    // Coroutines
+    implementation libs.kotlin.coroutines.android
+    implementation libs.kotlin.coroutines.core
+
+    // Navigation
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+
+    // RecyclerView
+    implementation libs.androidx.recyclerview
+
+    // ConstraintLayout
+    implementation libs.androidx.constraintlayout
+
+    // Testing
+    testImplementation libs.junit
+    
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.hilt.android.testing
+    kaptAndroidTest libs.hilt.compiler
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes true
+    useBuildCache true
+}

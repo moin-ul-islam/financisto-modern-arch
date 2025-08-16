@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.data.model.TransactionEntity
+import ru.orangesoftware.financisto.di.IoDispatcher
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,7 +43,7 @@ interface TransactionRepository {
 @Singleton
 class TransactionRepositoryImpl @Inject constructor(
     private val transactionDao: TransactionDao,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : TransactionRepository {
 
     override suspend fun getAllTransactions(): List<TransactionEntity> = withContext(ioDispatcher) {

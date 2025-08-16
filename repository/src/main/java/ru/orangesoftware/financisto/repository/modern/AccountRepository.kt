@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.dao.AccountDao
 import ru.orangesoftware.financisto.data.model.AccountEntity
+import ru.orangesoftware.financisto.di.IoDispatcher
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,7 +40,7 @@ interface AccountRepository {
 @Singleton
 class AccountRepositoryImpl @Inject constructor(
     private val accountDao: AccountDao,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : AccountRepository {
 
     override suspend fun getAllAccounts(): List<AccountEntity> = withContext(ioDispatcher) {

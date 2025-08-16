@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.model.AccountEntity
+import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,7 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class GetAccountsUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     /**
@@ -52,7 +53,7 @@ class GetAccountsUseCase @Inject constructor(
 @Singleton
 class GetAccountByIdUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(accountId: Long): AccountEntity? = withContext(ioDispatcher) {
@@ -70,7 +71,7 @@ class GetAccountByIdUseCase @Inject constructor(
 @Singleton
 class CreateAccountUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(account: AccountEntity): Result<Long> = withContext(ioDispatcher) {
@@ -89,7 +90,7 @@ class CreateAccountUseCase @Inject constructor(
 @Singleton
 class UpdateAccountUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(account: AccountEntity): Result<Boolean> = withContext(ioDispatcher) {
@@ -108,7 +109,7 @@ class UpdateAccountUseCase @Inject constructor(
 @Singleton
 class DeleteAccountUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun execute(accountId: Long): Result<Boolean> = withContext(ioDispatcher) {

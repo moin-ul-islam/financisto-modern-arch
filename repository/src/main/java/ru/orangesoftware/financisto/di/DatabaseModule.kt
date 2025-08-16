@@ -11,27 +11,17 @@ import ru.orangesoftware.financisto.data.database.FinancistoDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
 import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
-import ru.orangesoftware.financisto.db.DatabaseHelper
 import javax.inject.Singleton
 
 /**
  * Hilt module for database-related dependencies.
  * 
- * This module provides both legacy DatabaseHelper and modern Room database
- * to support gradual migration. Both systems can coexist during the transition.
+ * This module provides Room database and DAOs.
+ * Moved to repository module so it can be shared between main app and playground.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
-    /**
-     * Provides legacy DatabaseHelper for backward compatibility
-     */
-    @Provides
-    @Singleton
-    fun provideDatabaseHelper(@ApplicationContext context: Context): DatabaseHelper {
-        return DatabaseHelper(context)
-    }
 
     /**
      * Provides modern Room database
