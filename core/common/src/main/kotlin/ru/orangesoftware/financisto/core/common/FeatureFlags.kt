@@ -44,6 +44,28 @@ object FeatureFlags {
     const val USE_ROOM_DATABASE = false
 
     /**
+     * Phase 4.1 - ViewModel Integration Flags
+     */
+    
+    /**
+     * Enables BlotterViewModel for transaction list screen
+     * When enabled, BlotterActivity will delegate to BlotterViewModel when possible
+     */
+    const val USE_BLOTTER_VIEWMODEL = false
+    
+    /**
+     * Enables AccountListViewModel for account list screen
+     * When enabled, AccountListActivity will delegate to AccountListViewModel when possible
+     */
+    const val USE_ACCOUNT_LIST_VIEWMODEL = false
+    
+    /**
+     * Enables TransactionFormViewModel for transaction form screen
+     * When enabled, TransactionActivity will delegate to TransactionFormViewModel when possible
+     */
+    const val USE_TRANSACTION_FORM_VIEWMODEL = false
+
+    /**
      * Development and debugging flags
      */
     
