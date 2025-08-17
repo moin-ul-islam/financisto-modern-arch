@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupClickListeners() {
+        // Existing playground activities
         findViewById<android.widget.Button>(R.id.btnTestAccounts)?.setOnClickListener {
             startActivity(Intent(this, AccountListActivity::class.java))
         }
@@ -39,6 +40,19 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.widget.Button>(R.id.btnTestRoomMigration)?.setOnClickListener {
             // TODO: Implement Room migration test activity
             android.util.Log.d("MainActivity", "Room migration test clicked")
+        }
+        
+        // New feature module ViewModel demos
+        findViewById<android.widget.Button>(R.id.btnDemoBlotterViewModel)?.setOnClickListener {
+            startActivity(Intent(this, BlotterViewModelDemoActivity::class.java))
+        }
+        
+        findViewById<android.widget.Button>(R.id.btnDemoAccountViewModel)?.setOnClickListener {
+            startActivity(Intent(this, AccountViewModelDemoActivity::class.java))
+        }
+        
+        findViewById<android.widget.Button>(R.id.btnDemoTransactionFormViewModel)?.setOnClickListener {
+            startActivity(Intent(this, TransactionFormDemoActivity::class.java))
         }
     }
 }
