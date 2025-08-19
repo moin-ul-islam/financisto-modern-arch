@@ -76,6 +76,8 @@ data class BlotterTransactionItem(
  */
 sealed class BlotterAction {
     object LoadTransactions : BlotterAction()
+    object LoadAllTransactions : BlotterAction()
+    data class LoadAccountTransactions(val accountId: Long) : BlotterAction()
     object RefreshTransactions : BlotterAction()
     object RetryLoading : BlotterAction()
     data class SearchTransactions(val query: String) : BlotterAction()

@@ -45,6 +45,8 @@ class BlotterViewModel @Inject constructor(
     fun handleAction(action: BlotterAction) {
         when (action) {
             is BlotterAction.LoadTransactions -> loadTransactions()
+            is BlotterAction.LoadAllTransactions -> loadAllTransactions()
+            is BlotterAction.LoadAccountTransactions -> loadAccountTransactions(action.accountId)
             is BlotterAction.RefreshTransactions -> refreshTransactions()
             is BlotterAction.RetryLoading -> retryLoading()
             is BlotterAction.SearchTransactions -> searchTransactions(action.query)
@@ -130,6 +132,22 @@ class BlotterViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Load all transactions (no account filter).
+     */
+    private fun loadAllTransactions() {
+        _uiState.value = _uiState.value.copy(selectedAccountId = -1)
+        loadTransactions()
+    }
+
+    /**
+     * Load transactions for a specific account.
+     */
+    private fun loadAccountTransactions(accountId: Long) {
+        _uiState.value = _uiState.value.copy(selectedAccountId = accountId)
+        loadTransactions()
     }
 
     private fun refreshTransactions() {
