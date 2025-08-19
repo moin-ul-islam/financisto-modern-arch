@@ -49,6 +49,7 @@ public class BridgeManager {
     public static synchronized BlotterBridge getBlotterBridge(Context context) {
         if (blotterBridge == null) {
             DatabaseAdapter db = new DatabaseAdapter(context);
+            db.open(); // Open the database connection
             
             // Pass null for modern dependencies since feature flags are disabled by default
             // BlotterBridge code checks for null and uses safe calls so this is safe
@@ -63,6 +64,7 @@ public class BridgeManager {
     public static synchronized AccountBridge getAccountBridge(Context context) {
         if (accountBridge == null) {
             DatabaseAdapter db = new DatabaseAdapter(context);
+            db.open(); // Open the database connection
             
             // Pass null for modern dependencies since feature flags are disabled by default
             // Bridge code uses safe calls (?.) so this is safe
@@ -77,6 +79,7 @@ public class BridgeManager {
     public static synchronized TransactionBridge getTransactionBridge(Context context) {
         if (transactionBridge == null) {
             DatabaseAdapter db = new DatabaseAdapter(context);
+            db.open(); // Open the database connection
             
             // Pass null for modern dependencies since feature flags are disabled by default
             // Bridge code uses safe calls (?.) so this is safe

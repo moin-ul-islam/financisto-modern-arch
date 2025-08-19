@@ -119,10 +119,11 @@ public class BlotterActivity extends AbstractListActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Phase 1.2: Initialize bridges early to ensure they're available in internalOnCreate()
+        initializeBridges();
         super.onCreate(savedInstanceState);
         
-        // Phase 1.2: Bridges are initialized lazily in createCursor() or can be initialized here
-        // No need to initialize here since createCursor() handles it
+
         
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater = new NodeInflater(layoutInflater);

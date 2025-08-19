@@ -249,6 +249,32 @@ sealed class TransactionFormAction
    - Create integration tests for ViewModel-Bridge interaction
    - Validate configuration change handling
 
+## Critical Bug Fix ✅
+
+### Null Pointer Exception in BlotterActivity (RESOLVED)
+**Issue**: `java.lang.NullPointerException` when accessing `accountBridge.getAccount(long)` in `BlotterActivity.applyFilter()`
+
+**Root Cause**: Two-part issue:
+1. Bridge initialization was happening in `createCursor()` method, but `applyFilter()` was called earlier in `internalOnCreate()`, resulting in null bridge references.
+2. DatabaseAdapter instances in BridgeManager were not being opened with `db.open()`, causing database access failures.
+
+**Solution**: 
+1. Moved bridge initialization to `BlotterActivity.onCreate()` to ensure bridges are available before `internalOnCreate()` is called.
+2. Added `db.open()` calls in BridgeManager after creating DatabaseAdapter instances.
+
+**Impact**: Fixed crash affecting BlotterActivity and all its subclasses:
+- TemplatesListActivity
+- BudgetBlotterActivity  
+- MassOpActivity
+- ScheduledListActivity
+- SplitsBlotterActivity
+
+**Files Modified**:
+- `app/src/main/java/ru/orangesoftware/financisto/activity/BlotterActivity.java` - Added early bridge initialization
+- `app/src/main/java/ru/orangesoftware/financisto/bridge/BridgeManager.java` - Added db.open() calls
+
+**Status**: ✅ **RESOLVED** - App no longer crashes on startup, DatabaseAdapter properly initialized
+
 ## Summary
 
 Phase 4.2 successfully implements proper UI state management while preserving all existing functionality. The sealed class approach provides type-safe state handling, proper loading/error/empty states, and configuration change resilience. The bridge pattern ensures backward compatibility and gradual migration capability. The implementation maintains the existing UI appearance and business logic while establishing a solid foundation for future architectural improvements.
