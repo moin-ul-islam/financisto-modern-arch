@@ -55,6 +55,7 @@ class TransactionFormViewModel @Inject constructor(
      */
     fun handleAction(action: TransactionFormAction) {
         when (action) {
+            is TransactionFormAction.InitializeForm -> initializeForm()
             is TransactionFormAction.LoadTransaction -> loadTransaction(action.transactionId)
             is TransactionFormAction.SetAccount -> setAccount(action.account)
             is TransactionFormAction.SetToAccount -> setToAccount(action.account)
@@ -74,16 +75,30 @@ class TransactionFormViewModel @Inject constructor(
             is TransactionFormAction.SaveAsTemplate -> saveAsTemplate()
             is TransactionFormAction.ClearForm -> clearForm()
             is TransactionFormAction.ValidateForm -> validateForm()
+            is TransactionFormAction.RetryLoading -> retryLoading()
+            is TransactionFormAction.DismissSaveError -> dismissSaveError()
         }
     }
 
     private fun loadInitialData(transactionId: Long, accountId: Long, isTemplate: Boolean) {
         viewModelScope.launch(ioDispatcher) {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(screenState = TransactionFormScreenState.Loading)
             
             try {
                 // Load available accounts
                 val accounts = getAccountsUseCase.execute()
+                
+                if (accounts.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        screenState = TransactionFormScreenState.Error(
+                            message = "No accounts available. Please create an account first.",
+                            exception = null,
+                            canRetry = true
+                        )
+                    )
+                    return@launch
+                }
+                
                 val accountOptions = accounts.map { account ->
                     AccountOption(
                         id = account.id,
@@ -94,8 +109,15 @@ class TransactionFormViewModel @Inject constructor(
                     )
                 }
 
+                val contentData = TransactionFormContentData()
+
                 _uiState.value = _uiState.value.copy(
+                    screenState = TransactionFormScreenState.Content(contentData),
                     availableAccounts = accountOptions,
+                    availableCategories = emptyList(), // TODO: Load categories  
+                    availablePayees = emptyList(), // TODO: Load payees
+                    availableProjects = emptyList(), // TODO: Load projects
+                    availableLocations = emptyList(), // TODO: Load locations
                     isTemplate = isTemplate
                 )
 
@@ -110,13 +132,15 @@ class TransactionFormViewModel @Inject constructor(
                             setAccount(selectedAccount)
                         }
                     }
-                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to load form data: ${e.message}"
+                    screenState = TransactionFormScreenState.Error(
+                        message = "Failed to load form data: ${e.message}",
+                        exception = e,
+                        canRetry = true
+                    )
                 )
             }
         }
@@ -124,38 +148,100 @@ class TransactionFormViewModel @Inject constructor(
 
     private fun loadTransaction(transactionId: Long) {
         viewModelScope.launch(ioDispatcher) {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(screenState = TransactionFormScreenState.Loading)
             
             try {
                 val transaction = getTransactionByIdUseCase.execute(transactionId)
-                if (transaction != null) {
-                    // Populate form with transaction data
-                    val selectedAccount = _uiState.value.availableAccounts.find { it.id == transaction.fromAccountId }
-                    val selectedToAccount = if (transaction.toAccountId > 0) {
-                        _uiState.value.availableAccounts.find { it.id == transaction.toAccountId }
-                    } else null
-
+                if (transaction == null) {
                     _uiState.value = _uiState.value.copy(
-                        transactionId = transactionId,
-                        isEditMode = true,
-                        selectedAccount = selectedAccount,
-                        selectedToAccount = selectedToAccount,
-                        amount = (transaction.fromAmount / 100.0).toString(),
-                        formattedAmount = formatAmount(transaction.fromAmount, transaction.originalCurrencyId),
-                        note = transaction.note ?: "",
-                        dateTime = transaction.datetime,
-                        formattedDateTime = formatDateTime(transaction.datetime),
-                        isTransfer = transaction.toAccountId > 0,
-                        isLoading = false
+                        screenState = TransactionFormScreenState.Error(
+                            message = "Transaction not found",
+                            exception = null,
+                            canRetry = false
+                        )
                     )
+                    return@launch
                 }
+                
+                // Get current content data or create it
+                val currentState = _uiState.value.screenState
+                val contentData = if (currentState is TransactionFormScreenState.Content) {
+                    currentState.data
+                } else {
+                    // This shouldn't happen if loadInitialData was called first
+                    TransactionFormContentData()
+                }
+                
+                // Find selected accounts from main UI state
+                val selectedAccount = _uiState.value.availableAccounts.find { it.id == transaction.fromAccountId }
+                val selectedToAccount = if (transaction.toAccountId > 0) {
+                    _uiState.value.availableAccounts.find { it.id == transaction.toAccountId }
+                } else null
+
+                // Update form with transaction data
+                _uiState.value = _uiState.value.copy(
+                    screenState = TransactionFormScreenState.Content(contentData),
+                    transactionId = transactionId,
+                    isEditMode = true,
+                    selectedAccount = selectedAccount,
+                    selectedToAccount = selectedToAccount,
+                    amount = (transaction.fromAmount / 100.0).toString(),
+                    formattedAmount = formatAmount(transaction.fromAmount, transaction.originalCurrencyId),
+                    note = transaction.note ?: "",
+                    dateTime = transaction.datetime,
+                    formattedDateTime = formatDateTime(transaction.datetime),
+                    isTransfer = transaction.toAccountId > 0
+                )
+                
+                validateForm()
+                
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to load transaction: ${e.message}"
+                    screenState = TransactionFormScreenState.Error(
+                        message = "Failed to load transaction: ${e.message}",
+                        exception = e,
+                        canRetry = true
+                    )
                 )
             }
         }
+    }
+    
+    private fun retryLoading() {
+        val transactionId = _uiState.value.transactionId
+        if (transactionId > 0) {
+            loadTransaction(transactionId)
+        } else {
+            // Retry initial data load
+            val savedTransactionId = savedStateHandle.get<Long>("transactionId") ?: -1L
+            val accountId = savedStateHandle.get<Long>("accountId") ?: -1L
+            val isTemplate = savedStateHandle.get<Boolean>("isTemplate") ?: false
+            loadInitialData(savedTransactionId, accountId, isTemplate)
+        }
+    }
+    
+    private fun dismissError() {
+        // Try to go back to content state if possible
+        val currentState = _uiState.value.screenState
+        if (currentState is TransactionFormScreenState.Error) {
+            _uiState.value = _uiState.value.copy(
+                screenState = TransactionFormScreenState.Content(TransactionFormContentData())
+            )
+        }
+    }
+    
+    private fun initializeForm() {
+        // Called when form needs to be initialized
+        val transactionId = savedStateHandle.get<Long>("transactionId") ?: -1L
+        val accountId = savedStateHandle.get<Long>("accountId") ?: -1L
+        val isTemplate = savedStateHandle.get<Boolean>("isTemplate") ?: false
+        loadInitialData(transactionId, accountId, isTemplate)
+    }
+    
+    private fun dismissSaveError() {
+        _uiState.value = _uiState.value.copy(
+            saveState = SaveState.Idle
+        )
     }
 
     private fun setAccount(account: AccountOption) {
@@ -256,7 +342,9 @@ class TransactionFormViewModel @Inject constructor(
         }
 
         viewModelScope.launch(ioDispatcher) {
-            _uiState.value = _uiState.value.copy(isSaving = true)
+            _uiState.value = _uiState.value.copy(
+                saveState = SaveState.Saving
+            )
             
             try {
                 if (_uiState.value.isEditMode) {
@@ -267,13 +355,20 @@ class TransactionFormViewModel @Inject constructor(
                     // TODO: Implement create logic
                 }
                 
-                _uiState.value = _uiState.value.copy(isSaving = false)
+                _uiState.value = _uiState.value.copy(
+                    saveState = SaveState.Success(
+                        transactionId = -1L, // TODO: Return actual transaction ID from use case
+                        message = "Transaction saved successfully"
+                    )
+                )
                 // TODO: Navigate back or show success message
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isSaving = false,
-                    error = "Failed to save transaction: ${e.message}"
+                    saveState = SaveState.Failed(
+                        error = "Failed to save transaction: ${e.message}",
+                        canRetry = true
+                    )
                 )
             }
         }
@@ -284,12 +379,16 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     private fun clearForm() {
+        val currentState = _uiState.value
+        
         _uiState.value = TransactionFormUiState(
-            availableAccounts = _uiState.value.availableAccounts,
-            availableCategories = _uiState.value.availableCategories,
-            availablePayees = _uiState.value.availablePayees,
-            availableProjects = _uiState.value.availableProjects,
-            availableLocations = _uiState.value.availableLocations
+            screenState = TransactionFormScreenState.Content(TransactionFormContentData()),
+            availableAccounts = currentState.availableAccounts,
+            availableCategories = currentState.availableCategories,
+            availablePayees = currentState.availablePayees,
+            availableProjects = currentState.availableProjects,
+            availableLocations = currentState.availableLocations,
+            isTemplate = currentState.isTemplate
         )
     }
 

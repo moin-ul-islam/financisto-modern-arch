@@ -13,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.core.common.FeatureFlags
 import ru.orangesoftware.financisto.feature.account.AccountListAction
+import ru.orangesoftware.financisto.feature.account.AccountListScreenState
 import ru.orangesoftware.financisto.feature.account.AccountListViewModel
 import ru.orangesoftware.financisto.feature.account.AccountSortOrder
 import ru.orangesoftware.financisto.playground.R
@@ -87,30 +88,38 @@ class AccountViewModelDemoActivity : AppCompatActivity() {
     private fun setupObservers() {
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
-                // Update loading state
-                progressBar.visibility = if (uiState.isLoading) {
-                    android.view.View.VISIBLE
-                } else {
-                    android.view.View.GONE
+                when (val screenState = uiState.screenState) {
+                    is AccountListScreenState.Loading -> {
+                        progressBar.visibility = android.view.View.VISIBLE
+                        errorText.visibility = android.view.View.GONE
+                        recyclerView.visibility = android.view.View.GONE
+                    }
+                    is AccountListScreenState.Error -> {
+                        progressBar.visibility = android.view.View.GONE
+                        errorText.text = screenState.message
+                        errorText.visibility = android.view.View.VISIBLE
+                        recyclerView.visibility = android.view.View.GONE
+                    }
+                    is AccountListScreenState.Empty -> {
+                        progressBar.visibility = android.view.View.GONE
+                        errorText.text = "No accounts found"
+                        errorText.visibility = android.view.View.VISIBLE
+                        recyclerView.visibility = android.view.View.GONE
+                    }
+                    is AccountListScreenState.Content -> {
+                        progressBar.visibility = android.view.View.GONE
+                        errorText.visibility = android.view.View.GONE
+                        recyclerView.visibility = android.view.View.VISIBLE
+                        
+                        // Update account list
+                        adapter.submitList(screenState.data.accounts)
+                        
+                        // Update total balance
+                        totalBalanceText.text = "Total Balance: ${screenState.data.totalBalance}"
+                        
+                        android.util.Log.d("AccountDemo", "Accounts loaded: ${screenState.data.accounts.size}")
+                    }
                 }
-                
-                // Update error state
-                if (uiState.error != null) {
-                    errorText.text = uiState.error
-                    errorText.visibility = android.view.View.VISIBLE
-                    recyclerView.visibility = android.view.View.GONE
-                } else {
-                    errorText.visibility = android.view.View.GONE
-                    recyclerView.visibility = android.view.View.VISIBLE
-                }
-                
-                // Update account list
-                adapter.submitList(uiState.accounts)
-                
-                // Update total balance
-                totalBalanceText.text = "Total Balance: ${uiState.totalBalance}"
-                
-                android.util.Log.d("AccountDemo", "Accounts loaded: ${uiState.accounts.size}")
             }
         }
     }

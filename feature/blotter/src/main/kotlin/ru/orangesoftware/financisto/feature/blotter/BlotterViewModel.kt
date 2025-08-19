@@ -46,6 +46,7 @@ class BlotterViewModel @Inject constructor(
         when (action) {
             is BlotterAction.LoadTransactions -> loadTransactions()
             is BlotterAction.RefreshTransactions -> refreshTransactions()
+            is BlotterAction.RetryLoading -> retryLoading()
             is BlotterAction.SearchTransactions -> searchTransactions(action.query)
             is BlotterAction.FilterByAccount -> filterByAccount(action.accountId)
             is BlotterAction.DeleteTransaction -> deleteTransaction(action.transactionId)
@@ -55,20 +56,18 @@ class BlotterViewModel @Inject constructor(
             is BlotterAction.OpenFilter -> openFilter()
             is BlotterAction.CreateNewTransaction -> createNewTransaction()
             is BlotterAction.CreateNewTransfer -> createNewTransfer()
+            is BlotterAction.DismissIntegrityError -> dismissIntegrityError()
+            is BlotterAction.CalculateTotals -> calculateTotals()
         }
     }
 
     /**
      * Load transactions from the data source.
-     * Updates the UI state with loading, success, or error states.
-     * 
-     * TODO: This currently uses data entities from use cases, but in Phase 4.1
-     * we'll use the existing use cases as-is and wait for Phase 4.2 to fully
-     * migrate to domain models throughout the flow.
+     * Updates the UI state with loading, success, or error states using sealed classes.
      */
     private fun loadTransactions() {
         viewModelScope.launch(ioDispatcher) {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(screenState = BlotterScreenState.Loading)
             
             try {
                 // Use existing use cases which return TransactionEntity
@@ -77,6 +76,13 @@ class BlotterViewModel @Inject constructor(
                     getTransactionsForAccountUseCase.execute(_uiState.value.selectedAccountId)
                 } else {
                     getTransactionsUseCase.execute()
+                }
+                
+                if (dataEntities.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        screenState = BlotterScreenState.Empty
+                    )
+                    return@launch
                 }
                 
                 // Convert data entities to UI presentation items
@@ -101,19 +107,26 @@ class BlotterViewModel @Inject constructor(
                     )
                 }
                 
-                val totalAmount = calculateTotalAmount(transactionItems)
+                val contentData = BlotterContentData(
+                    transactions = transactionItems,
+                    hasMoreItems = false, // TODO: Implement pagination
+                    lastUpdateTime = System.currentTimeMillis()
+                )
                 
                 _uiState.value = _uiState.value.copy(
-                    transactions = transactionItems,
-                    totalAmount = totalAmount,
-                    isLoading = false,
-                    error = null
+                    screenState = BlotterScreenState.Content(contentData)
                 )
+                
+                // Start total calculation
+                calculateTotals()
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to load transactions: ${e.message}"
+                    screenState = BlotterScreenState.Error(
+                        message = "Failed to load transactions: ${e.message}",
+                        exception = e,
+                        canRetry = true
+                    )
                 )
             }
         }
@@ -121,6 +134,10 @@ class BlotterViewModel @Inject constructor(
 
     private fun refreshTransactions() {
         _uiState.value = _uiState.value.copy(isRefreshing = true)
+        loadTransactions()
+    }
+    
+    private fun retryLoading() {
         loadTransactions()
     }
 
@@ -145,7 +162,11 @@ class BlotterViewModel @Inject constructor(
                 loadTransactions() // Refresh the list
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to delete transaction: ${e.message}"
+                    screenState = BlotterScreenState.Error(
+                        message = "Failed to delete transaction: ${e.message}",
+                        exception = e,
+                        canRetry = false
+                    )
                 )
             }
         }
@@ -178,6 +199,47 @@ class BlotterViewModel @Inject constructor(
 
     private fun createNewTransfer() {
         // TODO: Navigate to create transfer screen
+    }
+    
+    private fun dismissIntegrityError() {
+        _uiState.value = _uiState.value.copy(showIntegrityError = false)
+    }
+    
+    private fun calculateTotals() {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.value = _uiState.value.copy(
+                totalCalculationState = TotalCalculationState.Calculating
+            )
+            
+            try {
+                // Get current transactions from content state
+                val currentState = _uiState.value.screenState
+                if (currentState is BlotterScreenState.Content) {
+                    val totalAmount = calculateTotalAmount(currentState.data.transactions)
+                    _uiState.value = _uiState.value.copy(
+                        totalCalculationState = TotalCalculationState.Completed(
+                            total = totalAmount,
+                            warningMessage = null // TODO: Add currency warnings if needed
+                        ),
+                        totalAmount = totalAmount
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        totalCalculationState = TotalCalculationState.Completed(
+                            total = "$0.00",
+                            warningMessage = null
+                        ),
+                        totalAmount = "$0.00"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    totalCalculationState = TotalCalculationState.Failed(
+                        error = "Failed to calculate totals: ${e.message}"
+                    )
+                )
+            }
+        }
     }
 
     // Helper functions for UI formatting

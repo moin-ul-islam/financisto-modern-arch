@@ -135,35 +135,140 @@ class BlotterViewModelBridge @Inject constructor() {
     /**
      * Update Activity UI based on ViewModel state.
      * This method bridges the gap between ViewModel state and existing Activity UI.
+     * Handles the new sealed class UI state structure.
      * 
      * @param activity The BlotterActivity instance (passed as Any to avoid import cycle)
      * @param uiState Current UI state from ViewModel
      */
     private fun updateActivityUi(activity: Any, uiState: BlotterUiState) {
-        // Update loading state
-        if (uiState.isLoading) {
-            // TODO: Show loading indicator in Activity using reflection or callback
-        }
+        try {
+            // Use reflection to call Activity methods to avoid import cycles
+            val activityClass = activity.javaClass
+            
+            // Handle screen state using sealed classes
+            when (uiState.screenState) {
+                is BlotterScreenState.Loading -> {
+                    // Show loading state - hide list, show progress
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, true)
+                    } catch (e: Exception) {
+                        // Fallback: try to show loading via other means or log
+                    }
+                }
+                
+                is BlotterScreenState.Empty -> {
+                    // Show empty state - hide progress, show empty message
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // TODO: Show empty state message
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is BlotterScreenState.Content -> {
+                    // Show content - hide progress, update list
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // Update transaction list if adapter is available
+                        // TODO: Update Activity's ListView/RecyclerView with new data
+                        // This would involve creating an adapter or updating existing adapter
+                        val transactions = uiState.screenState.data.transactions
+                        
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is BlotterScreenState.Error -> {
+                    // Show error state - hide progress, show error
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // Show error message - try to use Toast or existing error display
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.screenState.message, android.widget.Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+            }
 
-        // Update error state
-        uiState.error?.let { error ->
-            // TODO: Show error message in Activity using reflection or callback
-        }
+            // Handle total calculation state
+            when (uiState.totalCalculationState) {
+                is TotalCalculationState.Calculating -> {
+                    // Show calculation in progress
+                    try {
+                        val totalTextField = activityClass.getDeclaredField("totalText")
+                        totalTextField.isAccessible = true
+                        val totalText = totalTextField.get(activity) as android.widget.TextView
+                        totalText.text = "Calculating..."
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TotalCalculationState.Completed -> {
+                    // Show calculated total
+                    try {
+                        val totalTextField = activityClass.getDeclaredField("totalText")
+                        totalTextField.isAccessible = true
+                        val totalText = totalTextField.get(activity) as android.widget.TextView
+                        totalText.text = uiState.totalCalculationState.total
+                        
+                        // Show warning if present
+                        uiState.totalCalculationState.warningMessage?.let { warning ->
+                            val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                            android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TotalCalculationState.Failed -> {
+                    // Show calculation error
+                    try {
+                        val totalTextField = activityClass.getDeclaredField("totalText")
+                        totalTextField.isAccessible = true
+                        val totalText = totalTextField.get(activity) as android.widget.TextView
+                        totalText.text = "Error"
+                        
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.totalCalculationState.error, android.widget.Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TotalCalculationState.Idle -> {
+                    // Do nothing - keep current state
+                }
+            }
 
-        // Update transaction list
-        if (uiState.transactions.isNotEmpty()) {
-            // TODO: Update Activity's ListView/RecyclerView with new data
-            // This would involve creating an adapter or updating existing adapter
-        }
-
-        // Update total amount
-        if (uiState.totalAmount.isNotEmpty()) {
-            // TODO: Update total amount display in Activity
-        }
-
-        // Update filter state
-        if (uiState.isFilterActive) {
-            // TODO: Update filter indicator in Activity
+            // Update filter state
+            if (uiState.isFilterActive) {
+                // TODO: Update filter indicator in Activity
+            }
+            
+            // Handle refreshing state
+            if (uiState.isRefreshing) {
+                // TODO: Show refresh indicator if Activity supports it
+            }
+            
+        } catch (e: Exception) {
+            // Log error but don't crash
+            android.util.Log.e("BlotterViewModelBridge", "Error updating Activity UI", e)
         }
     }
 

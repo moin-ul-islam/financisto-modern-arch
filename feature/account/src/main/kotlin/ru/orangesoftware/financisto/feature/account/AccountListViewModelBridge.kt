@@ -127,29 +127,117 @@ class AccountListViewModelBridge @Inject constructor() {
 
     /**
      * Update Activity UI based on ViewModel state.
+     * Handles the new sealed class UI state structure.
      * 
      * @param activity The AccountListActivity instance (passed as Any to avoid import cycle)
      * @param uiState Current UI state from ViewModel
      */
     private fun updateActivityUi(activity: Any, uiState: AccountListUiState) {
-        // Update loading state
-        if (uiState.isLoading) {
-            // TODO: Show loading indicator in Activity using reflection or callback
-        }
+        try {
+            // Use reflection to call Activity methods to avoid import cycles
+            val activityClass = activity.javaClass
+            
+            // Handle screen state using sealed classes
+            when (uiState.screenState) {
+                is AccountListScreenState.Loading -> {
+                    // Show loading state - hide list, show progress
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, true)
+                    } catch (e: Exception) {
+                        // Fallback: try to show loading via other means or log
+                    }
+                }
+                
+                is AccountListScreenState.Empty -> {
+                    // Show empty state - hide progress, show empty message
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // TODO: Show empty state message
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is AccountListScreenState.Content -> {
+                    // Show content - hide progress, update list
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // Update account list if adapter is available
+                        // TODO: Update Activity's ListView/RecyclerView with new data
+                        val accounts = uiState.screenState.data.accounts
+                        
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is AccountListScreenState.Error -> {
+                    // Show error state - hide progress, show error
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // Show error message - try to use Toast or existing error display
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.screenState.message, android.widget.Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+            }
 
-        // Update error state
-        uiState.error?.let { error ->
-            // TODO: Show error message in Activity using reflection or callback
-        }
-
-        // Update account list
-        if (uiState.accounts.isNotEmpty()) {
-            // TODO: Update Activity's ListView/RecyclerView with new data
-        }
-
-        // Update total balance
-        if (uiState.totalBalance.isNotEmpty()) {
-            // TODO: Update total balance display in Activity
+            // Handle total calculation state
+            when (uiState.totalCalculationState) {
+                is TotalCalculationState.Calculating -> {
+                    // Show calculation in progress
+                    // TODO: Update total text view to show calculating
+                }
+                
+                is TotalCalculationState.Completed -> {
+                    // Show calculated total
+                    try {
+                        // TODO: Find and update the total display element
+                        uiState.totalCalculationState.warningMessage?.let { warning ->
+                            val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                            android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TotalCalculationState.Failed -> {
+                    // Show calculation error
+                    try {
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.totalCalculationState.error, android.widget.Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TotalCalculationState.Idle -> {
+                    // Do nothing - keep current state
+                }
+            }
+            
+            // Handle refreshing state
+            if (uiState.isRefreshing) {
+                // TODO: Show refresh indicator if Activity supports it
+            }
+            
+        } catch (e: Exception) {
+            // Log error but don't crash
+            android.util.Log.e("AccountListViewModelBridge", "Error updating Activity UI", e)
         }
     }
 

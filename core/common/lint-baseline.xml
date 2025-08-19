@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 7.3.0" type="baseline" client="gradle" dependencies="false" name="AGP (7.3.0)" variant="all" version="7.3.0">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="        return freq.capitalize() + end"
+        errorLine2="                    ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="193"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getYear`"
+        errorLine1="        val afterStart = if (todayYear > startDate.year) {"
+        errorLine2="                                                   ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="45"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getYear`"
+        errorLine1="        } else if (todayYear == startDate.year) {"
+        errorLine2="                                          ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="47"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="            if (todayMonth > startDate.monthValue) {"
+        errorLine2="                                       ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="48"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="            } else if (todayMonth == startDate.monthValue) {"
+        errorLine2="                                               ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="50"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                todayDay >= startDate.dayOfMonth"
+        errorLine2="                                      ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="51"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getYear`"
+        errorLine1="            if (todayYear &lt; end.year) {"
+        errorLine2="                                ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="61"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getYear`"
+        errorLine1="            } else if (todayYear == end.year) {"
+        errorLine2="                                        ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="63"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="                if (todayMonth &lt; end.monthValue) {"
+        errorLine2="                                     ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="64"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="                } else if (todayMonth == end.monthValue) {"
+        errorLine2="                                             ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="66"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                    todayDay &lt;= end.dayOfMonth"
+        errorLine2="                                    ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="67"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#of`"
+        errorLine1="            LocalDate.of("
+        errorLine2="                      ~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="87"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isBefore`"
+        errorLine1="        var candidate = if (targetDate.isBefore(startDate)) startDate else targetDate.plusDays(1)"
+        errorLine2="                                       ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="94"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#plusDays`"
+        errorLine1="        var candidate = if (targetDate.isBefore(startDate)) startDate else targetDate.plusDays(1)"
+        errorLine2="                                                                                      ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="94"
+            column="87"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        var candidate = if (targetDate.isBefore(startDate)) startDate else targetDate.plusDays(1)"
+        errorLine2="                                                ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="94"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isAfter`"
+        errorLine1="        while (endDate?.let { candidate.isAfter(it) } != true) {"
+        errorLine2="                                        ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="97"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        while (endDate?.let { candidate.isAfter(it) } != true) {"
+        errorLine2="                                                ~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="97"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#plusDays`"
+        errorLine1="            candidate = candidate.plusDays(1)"
+        errorLine2="                                  ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="101"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isAfter`"
+        errorLine1="            if (candidate.isAfter(LocalDate.now().plusYears(2))) {"
+        errorLine2="                          ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="104"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#now`"
+        errorLine1="            if (candidate.isAfter(LocalDate.now().plusYears(2))) {"
+        errorLine2="                                            ~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="104"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#plusYears`"
+        errorLine1="            if (candidate.isAfter(LocalDate.now().plusYears(2))) {"
+        errorLine2="                                                  ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="104"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="            if (candidate.isAfter(LocalDate.now().plusYears(2))) {"
+        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="104"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isBefore`"
+        errorLine1="        if (date.isBefore(startDate)) return false"
+        errorLine2="                 ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="116"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        if (date.isBefore(startDate)) return false"
+        errorLine2="                          ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="116"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isAfter`"
+        errorLine1="        if (endDate?.let { date.isAfter(it) } == true) return false"
+        errorLine2="                                ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="117"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        if (endDate?.let { date.isAfter(it) } == true) return false"
+        errorLine2="                                        ~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="117"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#between`"
+        errorLine1="                val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, date)"
+        errorLine2="                                                                     ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="121"
+            column="70"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, date)"
+        errorLine2="                                                                             ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="121"
+            column="78"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, date)"
+        errorLine2="                                                                                        ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="121"
+            column="89"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#DAYS`"
+        errorLine1="                val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, date)"
+        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="121"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#between`"
+        errorLine1="                val weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(startDate, date)"
+        errorLine2="                                                                       ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="125"
+            column="72"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(startDate, date)"
+        errorLine2="                                                                               ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="125"
+            column="80"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(startDate, date)"
+        errorLine2="                                                                                          ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="125"
+            column="91"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#WEEKS`"
+        errorLine1="                val weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(startDate, date)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="125"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.DayOfWeek#getValue`"
+        errorLine1="                val validDay = dayOfWeek?.let { date.dayOfWeek.value == it } ?: true"
+        errorLine2="                                                               ~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="127"
+            column="64"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfWeek`"
+        errorLine1="                val validDay = dayOfWeek?.let { date.dayOfWeek.value == it } ?: true"
+        errorLine2="                                                     ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="127"
+            column="54"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#between`"
+        errorLine1="                val monthsBetween = java.time.temporal.ChronoUnit.MONTHS.between(startDate, date)"
+        errorLine2="                                                                         ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="131"
+            column="74"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val monthsBetween = java.time.temporal.ChronoUnit.MONTHS.between(startDate, date)"
+        errorLine2="                                                                                 ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="131"
+            column="82"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val monthsBetween = java.time.temporal.ChronoUnit.MONTHS.between(startDate, date)"
+        errorLine2="                                                                                            ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="131"
+            column="93"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#MONTHS`"
+        errorLine1="                val monthsBetween = java.time.temporal.ChronoUnit.MONTHS.between(startDate, date)"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="131"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                    date.dayOfMonth == it || (it > date.lengthOfMonth() &amp;&amp; date.dayOfMonth == date.lengthOfMonth())"
+        errorLine2="                         ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="134"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                    date.dayOfMonth == it || (it > date.lengthOfMonth() &amp;&amp; date.dayOfMonth == date.lengthOfMonth())"
+        errorLine2="                                                                                ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="134"
+            column="81"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#lengthOfMonth`"
+        errorLine1="                    date.dayOfMonth == it || (it > date.lengthOfMonth() &amp;&amp; date.dayOfMonth == date.lengthOfMonth())"
+        errorLine2="                                                        ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="134"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#lengthOfMonth`"
+        errorLine1="                    date.dayOfMonth == it || (it > date.lengthOfMonth() &amp;&amp; date.dayOfMonth == date.lengthOfMonth())"
+        errorLine2="                                                                                                   ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="134"
+            column="100"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                } ?: (date.dayOfMonth == startDate.dayOfMonth)"
+        errorLine2="                           ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="135"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                } ?: (date.dayOfMonth == startDate.dayOfMonth)"
+        errorLine2="                                                   ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="135"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#between`"
+        errorLine1="                val yearsBetween = java.time.temporal.ChronoUnit.YEARS.between(startDate, date)"
+        errorLine2="                                                                       ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="139"
+            column="72"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val yearsBetween = java.time.temporal.ChronoUnit.YEARS.between(startDate, date)"
+        errorLine2="                                                                               ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="139"
+            column="80"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Temporal` requires API level 26 (current min is 19)"
+        errorLine1="                val yearsBetween = java.time.temporal.ChronoUnit.YEARS.between(startDate, date)"
+        errorLine2="                                                                                          ~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="139"
+            column="91"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Field requires API level 26 (current min is 19): `java.time.temporal.ChronoUnit#YEARS`"
+        errorLine1="                val yearsBetween = java.time.temporal.ChronoUnit.YEARS.between(startDate, date)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="139"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="                val validMonth = monthOfYear?.let { date.monthValue == it } ?: (date.monthValue == startDate.monthValue)"
+        errorLine2="                                                         ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="141"
+            column="58"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="                val validMonth = monthOfYear?.let { date.monthValue == it } ?: (date.monthValue == startDate.monthValue)"
+        errorLine2="                                                                                     ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="141"
+            column="86"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getMonthValue`"
+        errorLine1="                val validMonth = monthOfYear?.let { date.monthValue == it } ?: (date.monthValue == startDate.monthValue)"
+        errorLine2="                                                                                                             ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="141"
+            column="110"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                val validDay = dayOfMonth?.let { date.dayOfMonth == it } ?: (date.dayOfMonth == startDate.dayOfMonth)"
+        errorLine2="                                                      ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="142"
+            column="55"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                val validDay = dayOfMonth?.let { date.dayOfMonth == it } ?: (date.dayOfMonth == startDate.dayOfMonth)"
+        errorLine2="                                                                                  ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="142"
+            column="83"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                val validDay = dayOfMonth?.let { date.dayOfMonth == it } ?: (date.dayOfMonth == startDate.dayOfMonth)"
+        errorLine2="                                                                                                          ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="142"
+            column="107"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#minusDays`"
+        errorLine1="        var current = getNextOccurrence(from.minusDays(1))"
+        errorLine2="                                             ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="153"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isAfter`"
+        errorLine1="        while (current != null &amp;&amp; !current.isAfter(to)) {"
+        errorLine2="                                           ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="155"
+            column="44"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        while (current != null &amp;&amp; !current.isAfter(to)) {"
+        errorLine2="                                                   ~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="155"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isBefore`"
+        errorLine1="        return endDate?.isBefore(LocalDate.now()) == true"
+        errorLine2="                        ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="173"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#now`"
+        errorLine1="        return endDate?.isBefore(LocalDate.now()) == true"
+        errorLine2="                                           ~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="173"
+            column="44"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        return endDate?.isBefore(LocalDate.now()) == true"
+        errorLine2="                                 ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="173"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#isBefore`"
+        errorLine1="        if (endDate != null &amp;&amp; endDate.isBefore(startDate)) {"
+        errorLine2="                                       ~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="210"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `ChronoLocalDate` requires API level 26 (current min is 19)"
+        errorLine1="        if (endDate != null &amp;&amp; endDate.isBefore(startDate)) {"
+        errorLine2="                                                ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="210"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.DayOfWeek#getValue`"
+        errorLine1="                dayOfWeek = dayOfWeek ?: startDate.dayOfWeek.value,"
+        errorLine2="                                                             ~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="270"
+            column="62"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfWeek`"
+        errorLine1="                dayOfWeek = dayOfWeek ?: startDate.dayOfWeek.value,"
+        errorLine2="                                                   ~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="270"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Integer` requires API level 26 (current min is 19)"
+        errorLine1="                endDate = endDate,"
+        errorLine2="                          ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="271"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 19): `java.time.LocalDate#getDayOfMonth`"
+        errorLine1="                dayOfMonth = dayOfMonth ?: startDate.dayOfMonth,"
+        errorLine2="                                                     ~~~~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="290"
+            column="54"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Cast from `LocalDate` to `Integer` requires API level 26 (current min is 19)"
+        errorLine1="                endDate = endDate,"
+        errorLine2="                          ~~~~~~~">
+        <location
+            file="src/main/java/ru/orangesoftware/financisto/domain/model/RecurrenceRule.kt"
+            line="291"
+            column="27"/>
+    </issue>
+
+</issues>

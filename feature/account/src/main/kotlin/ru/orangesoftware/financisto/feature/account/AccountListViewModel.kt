@@ -44,30 +44,40 @@ class AccountListViewModel @Inject constructor(
         when (action) {
             is AccountListAction.LoadAccounts -> loadAccounts()
             is AccountListAction.RefreshAccounts -> refreshAccounts()
+            is AccountListAction.RetryLoading -> retryLoading()
             is AccountListAction.EditAccount -> editAccount(action.accountId)
             is AccountListAction.DeleteAccount -> deleteAccount(action.accountId)
             is AccountListAction.ToggleAccountStatus -> toggleAccountStatus(action.accountId)
             is AccountListAction.ViewAccountTransactions -> viewAccountTransactions(action.accountId)
             is AccountListAction.SortBy -> sortBy(action.sortOrder)
+            is AccountListAction.ShowAccountInfo -> showAccountInfo(action.accountId)
+            is AccountListAction.UpdateAccountBalance -> updateAccountBalance(action.accountId)
+            is AccountListAction.PurgeAccount -> purgeAccount(action.accountId)
             is AccountListAction.CreateNewAccount -> createNewAccount()
             is AccountListAction.ViewAccountTotals -> viewAccountTotals()
             is AccountListAction.IntegrityCheck -> performIntegrityCheck()
+            is AccountListAction.DismissIntegrityError -> dismissIntegrityError()
+            is AccountListAction.CalculateTotals -> calculateTotals()
         }
     }
 
     /**
      * Load accounts from the data source.
-     * Updates the UI state with loading, success, or error states.
-     * 
-     * Note: Uses existing use cases that return AccountEntity.
-     * Future phases will migrate to pure domain models.
+     * Updates the UI state with loading, success, or error states using sealed classes.
      */
     private fun loadAccounts() {
         viewModelScope.launch(ioDispatcher) {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(screenState = AccountListScreenState.Loading)
             
             try {
                 val accounts = getAccountsUseCase.execute()
+                
+                if (accounts.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        screenState = AccountListScreenState.Empty
+                    )
+                    return@launch
+                }
                 
                 val accountItems = accounts.map { account ->
                     AccountListItem(
@@ -88,19 +98,26 @@ class AccountListViewModel @Inject constructor(
                 }
                 
                 val sortedAccounts = sortAccounts(accountItems, _uiState.value.selectedSortOrder)
-                val totalBalance = calculateTotalBalance(accountItems)
+                
+                val contentData = AccountListContentData(
+                    accounts = sortedAccounts,
+                    lastUpdateTime = System.currentTimeMillis()
+                )
                 
                 _uiState.value = _uiState.value.copy(
-                    accounts = sortedAccounts,
-                    totalBalance = totalBalance,
-                    isLoading = false,
-                    error = null
+                    screenState = AccountListScreenState.Content(contentData)
                 )
+                
+                // Start total calculation
+                calculateTotals()
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to load accounts: ${e.message}"
+                    screenState = AccountListScreenState.Error(
+                        message = "Failed to load accounts: ${e.message}",
+                        exception = e,
+                        canRetry = true
+                    )
                 )
             }
         }
@@ -108,6 +125,10 @@ class AccountListViewModel @Inject constructor(
 
     private fun refreshAccounts() {
         _uiState.value = _uiState.value.copy(isRefreshing = true)
+        loadAccounts()
+    }
+    
+    private fun retryLoading() {
         loadAccounts()
     }
 
@@ -122,7 +143,11 @@ class AccountListViewModel @Inject constructor(
                 loadAccounts() // Refresh the list
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to delete account: ${e.message}"
+                    screenState = AccountListScreenState.Error(
+                        message = "Failed to delete account: ${e.message}",
+                        exception = e,
+                        canRetry = false
+                    )
                 )
             }
         }
@@ -139,7 +164,11 @@ class AccountListViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to update account: ${e.message}"
+                    screenState = AccountListScreenState.Error(
+                        message = "Failed to update account: ${e.message}",
+                        exception = e,
+                        canRetry = false
+                    )
                 )
             }
         }
@@ -150,13 +179,16 @@ class AccountListViewModel @Inject constructor(
     }
 
     private fun sortBy(sortOrder: AccountSortOrder) {
-        val currentAccounts = _uiState.value.accounts
-        val sortedAccounts = sortAccounts(currentAccounts, sortOrder)
-        
-        _uiState.value = _uiState.value.copy(
-            accounts = sortedAccounts,
-            selectedSortOrder = sortOrder
-        )
+        val currentState = _uiState.value.screenState
+        if (currentState is AccountListScreenState.Content) {
+            val sortedAccounts = sortAccounts(currentState.data.accounts, sortOrder)
+            val updatedContentData = currentState.data.copy(accounts = sortedAccounts)
+            
+            _uiState.value = _uiState.value.copy(
+                screenState = AccountListScreenState.Content(updatedContentData),
+                selectedSortOrder = sortOrder
+            )
+        }
     }
 
     private fun createNewAccount() {
@@ -169,6 +201,65 @@ class AccountListViewModel @Inject constructor(
 
     private fun performIntegrityCheck() {
         // TODO: Implement integrity check when use case is available
+    }
+    
+    private fun showAccountInfo(accountId: Long) {
+        // TODO: Navigate to account info screen
+    }
+    
+    private fun updateAccountBalance(accountId: Long) {
+        // TODO: Implement account balance update when use case is available
+    }
+    
+    private fun purgeAccount(accountId: Long) {
+        // TODO: Implement account purge when use case is available
+    }
+    
+    private fun dismissIntegrityError() {
+        // If we're in error state, try to go back to empty or retry loading
+        val currentState = _uiState.value.screenState
+        if (currentState is AccountListScreenState.Error) {
+            _uiState.value = _uiState.value.copy(
+                screenState = AccountListScreenState.Empty
+            )
+        }
+    }
+    
+    private fun calculateTotals() {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.value = _uiState.value.copy(
+                totalCalculationState = TotalCalculationState.Calculating
+            )
+            
+            try {
+                // Get current accounts from content state
+                val currentState = _uiState.value.screenState
+                if (currentState is AccountListScreenState.Content) {
+                    val totalBalance = calculateTotalBalance(currentState.data.accounts)
+                    val updatedContentData = currentState.data.copy(totalBalance = totalBalance)
+                    _uiState.value = _uiState.value.copy(
+                        totalCalculationState = TotalCalculationState.Completed(
+                            total = totalBalance,
+                            warningMessage = null // TODO: Add currency warnings if needed
+                        ),
+                        screenState = AccountListScreenState.Content(updatedContentData)
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        totalCalculationState = TotalCalculationState.Completed(
+                            total = "$0.00",
+                            warningMessage = null
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    totalCalculationState = TotalCalculationState.Failed(
+                        error = "Failed to calculate totals: ${e.message}"
+                    )
+                )
+            }
+        }
     }
 
     // Helper functions for UI formatting and business logic

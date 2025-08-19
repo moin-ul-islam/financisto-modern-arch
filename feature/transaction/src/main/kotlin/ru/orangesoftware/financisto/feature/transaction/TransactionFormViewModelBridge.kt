@@ -182,53 +182,144 @@ class TransactionFormViewModelBridge @Inject constructor() {
 
     /**
      * Update Activity UI based on ViewModel state.
+     * Handles the new sealed class UI state structure.
      * 
      * @param activity The TransactionActivity instance (passed as Any to avoid import cycle)
      * @param uiState Current UI state from ViewModel
      */
     private fun updateActivityUi(activity: Any, uiState: TransactionFormUiState) {
-        // Update loading state
-        if (uiState.isLoading) {
-            // TODO: Show loading indicator in Activity using reflection or callback
-        }
+        try {
+            // Use reflection to call Activity methods to avoid import cycles
+            val activityClass = activity.javaClass
+            
+            // Handle screen state using sealed classes
+            when (uiState.screenState) {
+                is TransactionFormScreenState.Loading -> {
+                    // Show loading state - disable form, show progress
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, true)
+                        
+                        // TODO: Disable form fields during loading
+                    } catch (e: Exception) {
+                        // Fallback: try to show loading via other means or log
+                    }
+                }
+                
+                is TransactionFormScreenState.Empty -> {
+                    // Show empty state - not typically used for form
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TransactionFormScreenState.Content -> {
+                    // Show content - hide progress, enable form
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // TODO: Enable form fields and populate with data from uiState.screenState.data
+                        
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is TransactionFormScreenState.Error -> {
+                    // Show error state - hide progress, show error
+                    try {
+                        val setProgressVisibility = activityClass.getDeclaredMethod("setProgressBarIndeterminateVisibility", Boolean::class.java)
+                        setProgressVisibility.isAccessible = true
+                        setProgressVisibility.invoke(activity, false)
+                        
+                        // Show error message - try to use Toast or existing error display
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.screenState.message, android.widget.Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+            }
 
-        // Update saving state
-        if (uiState.isSaving) {
-            // TODO: Show saving indicator and disable form
-        }
+            // Handle save state
+            when (uiState.saveState) {
+                is SaveState.Saving -> {
+                    // Show saving indicator and disable form
+                    try {
+                        // TODO: Show saving progress and disable save button
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, "Saving...", android.widget.Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is SaveState.Success -> {
+                    // Show success message and possibly finish activity
+                    try {
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.saveState.message, android.widget.Toast.LENGTH_SHORT).show()
+                        
+                        // TODO: Finish activity or navigate back
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is SaveState.Failed -> {
+                    // Show save error
+                    try {
+                        val context = activityClass.getMethod("getApplicationContext").invoke(activity) as android.content.Context
+                        android.widget.Toast.makeText(context, uiState.saveState.error, android.widget.Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+                }
+                
+                is SaveState.Idle -> {
+                    // Do nothing - normal state
+                }
+            }
 
-        // Update error state
-        uiState.error?.let { error ->
-            // TODO: Show error message in Activity using reflection or callback
-        }
+            // Update form fields based on ViewModel state
+            uiState.selectedAccount?.let { account ->
+                // TODO: Update account field in Activity
+            }
 
-        // Update form fields based on ViewModel state
-        uiState.selectedAccount?.let { account ->
-            // TODO: Update account field in Activity
-        }
+            if (uiState.amount.isNotEmpty()) {
+                // TODO: Update amount field in Activity
+            }
 
-        if (uiState.amount.isNotEmpty()) {
-            // TODO: Update amount field in Activity
-        }
+            uiState.selectedCategory?.let { category ->
+                // TODO: Update category field in Activity
+            }
 
-        uiState.selectedCategory?.let { category ->
-            // TODO: Update category field in Activity
-        }
+            if (uiState.note.isNotEmpty()) {
+                // TODO: Update note field in Activity
+            }
 
-        if (uiState.note.isNotEmpty()) {
-            // TODO: Update note field in Activity
-        }
+            // Update validation errors
+            if (uiState.validationErrors.isNotEmpty()) {
+                // TODO: Show validation errors in Activity
+            }
 
-        // Update validation errors
-        if (uiState.validationErrors.isNotEmpty()) {
-            // TODO: Show validation errors in Activity
-        }
-
-        // Update form valid state
-        if (uiState.isFormValid) {
-            // TODO: Enable save button in Activity
-        } else {
-            // TODO: Disable save button in Activity
+            // Update form valid state
+            if (uiState.isFormValid) {
+                // TODO: Enable save button in Activity
+            } else {
+                // TODO: Disable save button in Activity
+            }
+            
+        } catch (e: Exception) {
+            // Log error but don't crash
+            android.util.Log.e("TransactionFormViewModelBridge", "Error updating Activity UI", e)
         }
     }
 

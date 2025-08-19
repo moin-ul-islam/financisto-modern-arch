@@ -1,33 +1,53 @@
 package ru.orangesoftware.financisto.feature.blotter
 
 /**
- * Base UI state for all screens in the modernized architecture.
- * Provides common states like Loading, Error, and Success.
+ * Enhanced UI state management for the Blotter screen.
+ * Uses sealed classes to represent different screen states clearly.
  */
-sealed class UiState<out T> {
-    object Loading : UiState<Nothing>()
-    object Empty : UiState<Nothing>()
-    data class Success<T>(val data: T) : UiState<T>()
+sealed class BlotterScreenState {
+    object Loading : BlotterScreenState()
+    object Empty : BlotterScreenState()
+    data class Content(val data: BlotterContentData) : BlotterScreenState()
     data class Error(
         val message: String,
-        val exception: Throwable? = null
-    ) : UiState<Nothing>()
+        val exception: Throwable? = null,
+        val canRetry: Boolean = true
+    ) : BlotterScreenState()
 }
 
 /**
  * UI state specifically for the Blotter screen (transaction list).
- * Contains data and states relevant to transaction list display.
+ * Combines screen state with additional UI properties.
  */
 data class BlotterUiState(
-    val transactions: List<BlotterTransactionItem> = emptyList(),
-    val totalAmount: String = "",
-    val isLoading: Boolean = false,
-    val isFilterActive: Boolean = false,
+    val screenState: BlotterScreenState = BlotterScreenState.Loading,
+    val isRefreshing: Boolean = false,
+    val totalCalculationState: TotalCalculationState = TotalCalculationState.Idle,
     val searchQuery: String = "",
+    val isFilterActive: Boolean = false,
     val selectedAccountId: Long = -1,
-    val error: String? = null,
-    val isRefreshing: Boolean = false
+    val totalAmount: String = "",
+    val showIntegrityError: Boolean = false
 )
+
+/**
+ * Content data for successful state
+ */
+data class BlotterContentData(
+    val transactions: List<BlotterTransactionItem> = emptyList(),
+    val hasMoreItems: Boolean = false,
+    val lastUpdateTime: Long = System.currentTimeMillis()
+)
+
+/**
+ * States for total calculation (async operation in legacy)
+ */
+sealed class TotalCalculationState {
+    object Idle : TotalCalculationState()
+    object Calculating : TotalCalculationState()
+    data class Completed(val total: String, val warningMessage: String? = null) : TotalCalculationState()
+    data class Failed(val error: String) : TotalCalculationState()
+}
 
 /**
  * Represents a transaction item in the blotter list with UI-specific formatting.
@@ -57,6 +77,7 @@ data class BlotterTransactionItem(
 sealed class BlotterAction {
     object LoadTransactions : BlotterAction()
     object RefreshTransactions : BlotterAction()
+    object RetryLoading : BlotterAction()
     data class SearchTransactions(val query: String) : BlotterAction()
     data class FilterByAccount(val accountId: Long) : BlotterAction()
     data class DeleteTransaction(val transactionId: Long) : BlotterAction()
@@ -66,4 +87,6 @@ sealed class BlotterAction {
     object OpenFilter : BlotterAction()
     object CreateNewTransaction : BlotterAction()
     object CreateNewTransfer : BlotterAction()
+    object DismissIntegrityError : BlotterAction()
+    object CalculateTotals : BlotterAction()
 }

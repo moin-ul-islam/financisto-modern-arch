@@ -35,9 +35,43 @@ data class RecurrenceRule(
     fun isActive(): Boolean {
         if (!isEnabled) return false
         
-        val today = LocalDate.now()
-        val afterStart = !today.isBefore(startDate)
-        val beforeEnd = endDate?.let { !today.isAfter(it) } ?: true
+        // Use java.util.Calendar for API level 19+ compatibility
+        val today = java.util.Calendar.getInstance()
+        val todayYear = today.get(java.util.Calendar.YEAR)
+        val todayMonth = today.get(java.util.Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+        val todayDay = today.get(java.util.Calendar.DAY_OF_MONTH)
+        
+        // Check if today is after or equal to start date
+        val afterStart = if (todayYear > startDate.year) {
+            true
+        } else if (todayYear == startDate.year) {
+            if (todayMonth > startDate.monthValue) {
+                true
+            } else if (todayMonth == startDate.monthValue) {
+                todayDay >= startDate.dayOfMonth
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+        
+        // Check if today is before or equal to end date (if set)
+        val beforeEnd = endDate?.let { end ->
+            if (todayYear < end.year) {
+                true
+            } else if (todayYear == end.year) {
+                if (todayMonth < end.monthValue) {
+                    true
+                } else if (todayMonth == end.monthValue) {
+                    todayDay <= end.dayOfMonth
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } ?: true
         
         return afterStart && beforeEnd
     }
@@ -45,10 +79,19 @@ data class RecurrenceRule(
     /**
      * Business logic: Calculate the next occurrence date after a given date
      */
-    fun getNextOccurrence(afterDate: LocalDate = LocalDate.now()): LocalDate? {
+    fun getNextOccurrence(afterDate: LocalDate? = null): LocalDate? {
         if (!isActive()) return null
         
-        var candidate = if (afterDate.isBefore(startDate)) startDate else afterDate.plusDays(1)
+        val targetDate = afterDate ?: run {
+            val today = java.util.Calendar.getInstance()
+            LocalDate.of(
+                today.get(java.util.Calendar.YEAR),
+                today.get(java.util.Calendar.MONTH) + 1,
+                today.get(java.util.Calendar.DAY_OF_MONTH)
+            )
+        }
+        
+        var candidate = if (targetDate.isBefore(startDate)) startDate else targetDate.plusDays(1)
         
         // Find the next valid occurrence based on frequency
         while (endDate?.let { candidate.isAfter(it) } != true) {

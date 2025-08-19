@@ -1,16 +1,34 @@
 package ru.orangesoftware.financisto.feature.transaction
 
 /**
+ * Enhanced UI state management for the Transaction Form screen.
+ * Uses sealed classes to represent different screen states clearly.
+ */
+sealed class TransactionFormScreenState {
+    object Loading : TransactionFormScreenState()
+    object Empty : TransactionFormScreenState()
+    data class Content(val data: TransactionFormContentData) : TransactionFormScreenState()
+    data class Error(
+        val message: String,
+        val exception: Throwable? = null,
+        val canRetry: Boolean = true
+    ) : TransactionFormScreenState()
+}
+
+/**
  * UI state for the Transaction Form screen.
  * Contains data and states relevant to transaction creation/editing.
  */
 data class TransactionFormUiState(
+    val screenState: TransactionFormScreenState = TransactionFormScreenState.Loading,
+    val isLoadingData: Boolean = false,
+    val isSaving: Boolean = false,
+    val saveState: SaveState = SaveState.Idle,
+    
+    // Form mode
     val transactionId: Long = -1,
     val isEditMode: Boolean = false,
     val isTemplate: Boolean = false,
-    val isLoading: Boolean = false,
-    val isSaving: Boolean = false,
-    val error: String? = null,
     
     // Transaction fields
     val selectedAccount: AccountOption? = null,
@@ -44,6 +62,24 @@ data class TransactionFormUiState(
     val validationErrors: List<ValidationError> = emptyList(),
     val isFormValid: Boolean = false
 )
+
+/**
+ * Content data for successful state
+ */
+data class TransactionFormContentData(
+    val formData: Map<String, Any> = emptyMap(),
+    val lastUpdateTime: Long = System.currentTimeMillis()
+)
+
+/**
+ * States for save operation
+ */
+sealed class SaveState {
+    object Idle : SaveState()
+    object Saving : SaveState()
+    data class Success(val transactionId: Long, val message: String) : SaveState()
+    data class Failed(val error: String, val canRetry: Boolean = true) : SaveState()
+}
 
 /**
  * Options for dropdowns/selectors
@@ -113,6 +149,8 @@ sealed class ValidationError(val message: String) {
  * User actions that can be performed on the Transaction Form screen.
  */
 sealed class TransactionFormAction {
+    object InitializeForm : TransactionFormAction()
+    object RetryLoading : TransactionFormAction()
     data class LoadTransaction(val transactionId: Long) : TransactionFormAction()
     data class SetAccount(val account: AccountOption) : TransactionFormAction()
     data class SetToAccount(val account: AccountOption) : TransactionFormAction()
@@ -132,4 +170,5 @@ sealed class TransactionFormAction {
     object SaveAsTemplate : TransactionFormAction()
     object ClearForm : TransactionFormAction()
     object ValidateForm : TransactionFormAction()
+    object DismissSaveError : TransactionFormAction()
 }
