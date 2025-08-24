@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
-import ru.orangesoftware.financisto.usecase.modern.CreateTransactionUseCase
-import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetTransactionByIdUseCase
+import ru.orangesoftware.financisto.usecase.modern.CreateTransactionUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateTransactionUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import javax.inject.Inject
 
 /**
@@ -74,7 +74,6 @@ class TransactionFormViewModel @Inject constructor(
             is TransactionFormAction.SaveTransaction -> saveTransaction()
             is TransactionFormAction.SaveAsTemplate -> saveAsTemplate()
             is TransactionFormAction.ClearForm -> clearForm()
-            is TransactionFormAction.CancelForm -> cancelForm()
             is TransactionFormAction.ValidateForm -> validateForm()
             is TransactionFormAction.RetryLoading -> retryLoading()
             is TransactionFormAction.DismissSaveError -> dismissSaveError()
@@ -391,14 +390,6 @@ class TransactionFormViewModel @Inject constructor(
             availableLocations = currentState.availableLocations,
             isTemplate = currentState.isTemplate
         )
-    }
-
-    /**
-     * Cancel form - reset state and dismiss any pending operations.
-     */
-    private fun cancelForm() {
-        clearForm()
-        // Additional cancel logic if needed
     }
 
     private fun validateForm() {

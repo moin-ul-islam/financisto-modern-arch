@@ -169,7 +169,6 @@ sealed class TransactionFormAction {
     object SaveTransaction : TransactionFormAction()
     object SaveAsTemplate : TransactionFormAction()
     object ClearForm : TransactionFormAction()
-    object CancelForm : TransactionFormAction()
     object ValidateForm : TransactionFormAction()
     object DismissSaveError : TransactionFormAction()
 }
