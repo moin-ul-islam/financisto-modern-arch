@@ -55,13 +55,6 @@
             android:exported="false"
             android:label="Transaction Form Demo" />
             
-        <!-- Modern Fragment-based Activity -->
-        <activity
-            android:name=".activity.ModernMainActivity"
-            android:exported="true"
-            android:label="Modern Main Activity"
-            android:theme="@style/Theme.FinancistoPlayground" />
-            
     </application>
 
 </manifest>

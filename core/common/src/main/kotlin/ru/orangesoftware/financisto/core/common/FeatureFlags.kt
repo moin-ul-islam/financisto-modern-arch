@@ -73,7 +73,7 @@ object FeatureFlags {
      * Enables Fragment-based architecture instead of Activity-based
      * When enabled, screens will use Fragments with a single MainActivity container
      */
-    const val USE_FRAGMENT_ARCHITECTURE = false
+    const val USE_FRAGMENT_ARCHITECTURE = true
 
     /**
      * Development and debugging flags

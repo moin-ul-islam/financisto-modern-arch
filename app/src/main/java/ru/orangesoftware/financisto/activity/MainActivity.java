@@ -48,13 +48,13 @@ public class MainActivity extends TabActivity implements TabHost.OnTabChangeList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        // Redirect to modern Fragment-based architecture if enabled
-//        if (ru.orangesoftware.financisto.core.common.FeatureFlags.USE_FRAGMENT_ARCHITECTURE) {
-//            Intent intent = new Intent(this, ModernMainActivity.class);
-//            startActivity(intent);
-//            finish();
-//            return;
-//        }
+        // Redirect to modern Fragment-based architecture if enabled
+        if (ru.orangesoftware.financisto.core.common.FeatureFlags.USE_FRAGMENT_ARCHITECTURE) {
+            Intent intent = new Intent(this, ModernMainActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         greenRobotBus = GreenRobotBus_.getInstance_(this);
 
