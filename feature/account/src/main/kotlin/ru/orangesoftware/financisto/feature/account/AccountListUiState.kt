@@ -63,7 +63,15 @@ data class AccountListItem(
     val lastTransactionDate: Long,
     val formattedLastTransactionDate: String,
     val transactionCount: Int,
-    val note: String
+    val note: String,
+    // Additional UI properties for Compose implementation
+    val topText: String = "", // Account type/issuer info
+    val formattedDate: String = formattedLastTransactionDate,
+    val balanceAmount: Long = 0L, // Raw amount for color determination
+    val showCreditInfo: Boolean = false,
+    val formattedCreditBalance: String = "",
+    val showProgressBar: Boolean = false,
+    val creditUtilization: Float = 0f
 )
 
 /**
