@@ -54,5 +54,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.widget.Button>(R.id.btnDemoTransactionFormViewModel)?.setOnClickListener {
             startActivity(Intent(this, TransactionFormDemoActivity::class.java))
         }
+        
+        // Modern Compose UI demonstrations
+        findViewById<android.widget.Button>(R.id.btnAccountListCompose)?.setOnClickListener {
+            startActivity(Intent(this, AccountListComposeActivity::class.java))
+        }
     }
 }

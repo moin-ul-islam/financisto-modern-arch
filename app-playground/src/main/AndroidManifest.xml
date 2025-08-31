@@ -55,6 +55,12 @@
             android:exported="false"
             android:label="Transaction Form Demo" />
             
+        <!-- Compose UI Activities -->
+        <activity
+            android:name=".ui.AccountListComposeActivity"
+            android:exported="false"
+            android:label="Account List (Compose)" />
+            
     </application>
 
 </manifest>
