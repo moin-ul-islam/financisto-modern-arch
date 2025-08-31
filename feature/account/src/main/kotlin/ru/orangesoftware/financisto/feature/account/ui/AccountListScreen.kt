@@ -42,7 +42,7 @@ fun AccountListScreen(
     onNavigateToPurgeAccount: (Long) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
+    viewModel.handleAction(AccountListAction.LoadAccounts)
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
