@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -8,9 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import ru.orangesoftware.financisto.playground.R
-import ru.orangesoftware.financisto.playground.ui.adapter.AccountListAdapter
-import ru.orangesoftware.financisto.playground.ui.viewmodel.AccountListViewModel
+import ru.orangesoftware.financisto.modern.R
+import ru.orangesoftware.financisto.modern.ui.adapter.AccountListAdapter
+import ru.orangesoftware.financisto.modern.ui.viewmodel.AccountListViewModel
 
 /**
  * Activity to test account-related modern architecture components.

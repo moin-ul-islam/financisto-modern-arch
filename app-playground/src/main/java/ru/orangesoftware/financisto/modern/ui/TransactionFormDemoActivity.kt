@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.os.Bundle
 import android.widget.Button
@@ -17,8 +17,7 @@ import ru.orangesoftware.financisto.feature.transaction.SaveState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormAction
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormScreenState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormViewModel
-import ru.orangesoftware.financisto.feature.transaction.ValidationError
-import ru.orangesoftware.financisto.playground.R
+import ru.orangesoftware.financisto.modern.R
 
 /**
  * Demo activity that showcases the new TransactionFormViewModel from the feature:transaction module.

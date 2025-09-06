@@ -6,15 +6,15 @@ plugins {
 }
 
 android {
-    namespace 'ru.orangesoftware.financisto.playground'
+    namespace 'ru.orangesoftware.financisto.modern'
     compileSdk 34
 
     defaultConfig {
-        applicationId "ru.orangesoftware.financisto.playground"
+        applicationId "ru.orangesoftware.financisto.modern"
         minSdk 21
         targetSdk 34
         versionCode 1
-        versionName "1.0-playground"
+        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

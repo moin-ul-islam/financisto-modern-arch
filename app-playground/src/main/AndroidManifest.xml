@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".PlaygroundApplication"
+        android:name=".ModernApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,53 +13,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FinancistoPlayground"
         tools:targetApi="31">
-        
-        <activity
-            android:name=".ui.MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.FinancistoPlayground">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        
-        <activity
-            android:name=".ui.AccountListActivity"
-            android:exported="false"
-            android:label="@string/accounts_title" />
-            
-        <activity
-            android:name=".ui.TransactionListActivity"
-            android:exported="false"
-            android:label="@string/transactions_title" />
-            
-        <activity
-            android:name=".ui.RunningBalanceTestActivity"
-            android:exported="false"
-            android:label="@string/running_balance_test_title" />
-            
-        <!-- New ViewModel Demo Activities -->
-        <activity
-            android:name=".ui.BlotterViewModelDemoActivity"
-            android:exported="false"
-            android:label="Blotter ViewModel Demo" />
-            
-        <activity
-            android:name=".ui.AccountViewModelDemoActivity"
-            android:exported="false"
-            android:label="Account ViewModel Demo" />
-            
-        <activity
-            android:name=".ui.TransactionFormDemoActivity"
-            android:exported="false"
-            android:label="Transaction Form Demo" />
-            
+
         <!-- Compose UI Activities -->
         <activity
             android:name=".ui.AccountListComposeActivity"
-            android:exported="false"
-            android:label="Account List (Compose)" />
+            android:exported="true"
+            android:theme="@style/Theme.FinancistoPlayground">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
             
     </application>
 

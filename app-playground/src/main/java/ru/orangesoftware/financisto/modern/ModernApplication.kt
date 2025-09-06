@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground
+package ru.orangesoftware.financisto.modern
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
@@ -11,7 +11,7 @@ import dagger.hilt.android.HiltAndroidApp
  * the new architecture components in isolation.
  */
 @HiltAndroidApp
-class PlaygroundApplication : Application() {
+class ModernApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()

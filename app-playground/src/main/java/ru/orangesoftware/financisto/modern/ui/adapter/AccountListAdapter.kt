@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui.adapter
+package ru.orangesoftware.financisto.modern.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.orangesoftware.financisto.data.model.AccountEntity
-import ru.orangesoftware.financisto.playground.R
+import ru.orangesoftware.financisto.modern.R
 
 /**
  * RecyclerView adapter for displaying accounts in the playground app.

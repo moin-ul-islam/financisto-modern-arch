@@ -1,15 +1,13 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import ru.orangesoftware.financisto.playground.R
-import ru.orangesoftware.financisto.playground.databinding.ActivityRunningBalanceTestBinding
-import ru.orangesoftware.financisto.playground.ui.viewmodel.RunningBalanceTestViewModel
+import ru.orangesoftware.financisto.modern.databinding.ActivityRunningBalanceTestBinding
+import ru.orangesoftware.financisto.modern.ui.viewmodel.RunningBalanceTestViewModel
 
 /**
  * Activity to test running balance related components.

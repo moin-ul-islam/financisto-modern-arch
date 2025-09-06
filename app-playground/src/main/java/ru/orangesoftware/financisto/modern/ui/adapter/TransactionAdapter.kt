@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui.adapter
+package ru.orangesoftware.financisto.modern.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.orangesoftware.financisto.feature.blotter.BlotterTransactionItem
-import ru.orangesoftware.financisto.playground.R
+import ru.orangesoftware.financisto.modern.R
 
 /**
  * Adapter for displaying transaction items from BlotterViewModel in the demo.

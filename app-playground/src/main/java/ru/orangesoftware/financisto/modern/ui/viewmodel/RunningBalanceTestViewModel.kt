@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui.viewmodel
+package ru.orangesoftware.financisto.modern.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

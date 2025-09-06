@@ -1,10 +1,10 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
-import ru.orangesoftware.financisto.playground.R
+import ru.orangesoftware.financisto.modern.R
 
 /**
  * Main playground activity that provides access to test various

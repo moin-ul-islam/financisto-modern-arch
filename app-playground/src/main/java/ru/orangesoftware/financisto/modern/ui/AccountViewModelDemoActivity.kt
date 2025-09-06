@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.os.Bundle
 import android.widget.Button
@@ -12,37 +12,39 @@ import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.core.common.FeatureFlags
-import ru.orangesoftware.financisto.feature.blotter.BlotterAction
-import ru.orangesoftware.financisto.feature.blotter.BlotterScreenState
-import ru.orangesoftware.financisto.feature.blotter.BlotterViewModel
-import ru.orangesoftware.financisto.playground.R
-import ru.orangesoftware.financisto.playground.ui.adapter.TransactionAdapter
+import ru.orangesoftware.financisto.feature.account.AccountListAction
+import ru.orangesoftware.financisto.feature.account.AccountListScreenState
+import ru.orangesoftware.financisto.feature.account.AccountListViewModel
+import ru.orangesoftware.financisto.feature.account.AccountSortOrder
+import ru.orangesoftware.financisto.modern.R
+import ru.orangesoftware.financisto.modern.ui.adapter.AccountDemoAdapter
 
 /**
- * Demo activity that showcases the new BlotterViewModel from the feature:blotter module.
+ * Demo activity that showcases the new AccountListViewModel from the feature:account module.
  * 
  * This demonstrates:
- * - Using feature module ViewModels
+ * - Using feature module ViewModels  
  * - StateFlow UI state observation
  * - User action handling
  * - Feature flag integration
  * - Modern MVVM architecture
  */
 @AndroidEntryPoint
-class BlotterViewModelDemoActivity : AppCompatActivity() {
+class AccountViewModelDemoActivity : AppCompatActivity() {
     
-    private val viewModel: BlotterViewModel by viewModels()
-    private lateinit var adapter: TransactionAdapter
+    private val viewModel: AccountListViewModel by viewModels()
+    private lateinit var adapter: AccountDemoAdapter
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var errorText: TextView
     private lateinit var refreshButton: Button
     private lateinit var featureFlagStatus: TextView
+    private lateinit var totalBalanceText: TextView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_blotter_demo)
+        setContentView(R.layout.activity_account_demo)
         
         setupToolbar()
         setupViews()
@@ -52,14 +54,14 @@ class BlotterViewModelDemoActivity : AppCompatActivity() {
         displayFeatureFlagStatus()
         
         // Load initial data
-        viewModel.handleAction(BlotterAction.RefreshTransactions)
+        viewModel.handleAction(AccountListAction.LoadAccounts)
     }
     
     private fun setupToolbar() {
         findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)?.let { toolbar ->
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            supportActionBar?.title = "Blotter ViewModel Demo"
+            supportActionBar?.title = "Account ViewModel Demo"
         }
     }
     
@@ -69,12 +71,14 @@ class BlotterViewModelDemoActivity : AppCompatActivity() {
         errorText = findViewById(R.id.errorText)
         refreshButton = findViewById(R.id.refreshButton)
         featureFlagStatus = findViewById(R.id.featureFlagStatus)
+        totalBalanceText = findViewById(R.id.totalBalanceText)
     }
     
     private fun setupRecyclerView() {
-        adapter = TransactionAdapter { transaction ->
-            // Handle transaction click
-            android.util.Log.d("BlotterDemo", "Transaction clicked: ${transaction.id}")
+        adapter = AccountDemoAdapter { account ->
+            // Handle account click
+            android.util.Log.d("AccountDemo", "Account clicked: ${account.title}")
+            // Could navigate to account details or edit
         }
         
         recyclerView.adapter = adapter
@@ -85,33 +89,35 @@ class BlotterViewModelDemoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (val screenState = uiState.screenState) {
-                    is BlotterScreenState.Loading -> {
+                    is AccountListScreenState.Loading -> {
                         progressBar.visibility = android.view.View.VISIBLE
                         errorText.visibility = android.view.View.GONE
                         recyclerView.visibility = android.view.View.GONE
                     }
-                    is BlotterScreenState.Error -> {
+                    is AccountListScreenState.Error -> {
                         progressBar.visibility = android.view.View.GONE
                         errorText.text = screenState.message
                         errorText.visibility = android.view.View.VISIBLE
                         recyclerView.visibility = android.view.View.GONE
                     }
-                    is BlotterScreenState.Empty -> {
+                    is AccountListScreenState.Empty -> {
                         progressBar.visibility = android.view.View.GONE
-                        errorText.text = "No transactions found"
+                        errorText.text = "No accounts found"
                         errorText.visibility = android.view.View.VISIBLE
                         recyclerView.visibility = android.view.View.GONE
                     }
-                    is BlotterScreenState.Content -> {
+                    is AccountListScreenState.Content -> {
                         progressBar.visibility = android.view.View.GONE
                         errorText.visibility = android.view.View.GONE
                         recyclerView.visibility = android.view.View.VISIBLE
                         
-                        // Update transaction list
-                        adapter.submitList(screenState.data.transactions)
+                        // Update account list
+                        adapter.submitList(screenState.data.accounts)
                         
-                        // Update total amount display (could add a text view for this)
-                        android.util.Log.d("BlotterDemo", "Total amount: ${uiState.totalAmount}")
+                        // Update total balance
+                        totalBalanceText.text = "Total Balance: ${screenState.data.totalBalance}"
+                        
+                        android.util.Log.d("AccountDemo", "Accounts loaded: ${screenState.data.accounts.size}")
                     }
                 }
             }
@@ -120,27 +126,28 @@ class BlotterViewModelDemoActivity : AppCompatActivity() {
     
     private fun setupClickListeners() {
         refreshButton.setOnClickListener {
-            viewModel.handleAction(BlotterAction.RefreshTransactions)
+            viewModel.handleAction(AccountListAction.RefreshAccounts)
         }
         
-        findViewById<Button>(R.id.filterAllButton)?.setOnClickListener {
-            viewModel.handleAction(BlotterAction.ClearFilter)
+        findViewById<Button>(R.id.sortByNameButton)?.setOnClickListener {
+            viewModel.handleAction(AccountListAction.SortBy(AccountSortOrder.NAME))
         }
         
-        findViewById<Button>(R.id.sortByDateButton)?.setOnClickListener {
-            viewModel.handleAction(BlotterAction.LoadTransactions)
+        findViewById<Button>(R.id.sortByBalanceButton)?.setOnClickListener {
+            viewModel.handleAction(AccountListAction.SortBy(AccountSortOrder.BALANCE))
         }
         
-        findViewById<Button>(R.id.sortByAmountButton)?.setOnClickListener {
-            viewModel.handleAction(BlotterAction.LoadTransactions)
+        findViewById<Button>(R.id.toggleActiveButton)?.setOnClickListener {
+            // Toggle showing only active accounts
+            android.util.Log.d("AccountDemo", "Toggle active accounts filter")
         }
     }
     
     private fun displayFeatureFlagStatus() {
-        val status = if (FeatureFlags.USE_BLOTTER_VIEWMODEL) {
-            "✅ Blotter ViewModel Feature Flag: ENABLED"
+        val status = if (FeatureFlags.USE_ACCOUNT_LIST_VIEWMODEL) {
+            "✅ Account ViewModel Feature Flag: ENABLED"
         } else {
-            "❌ Blotter ViewModel Feature Flag: DISABLED"
+            "❌ Account ViewModel Feature Flag: DISABLED"
         }
         featureFlagStatus.text = status
     }

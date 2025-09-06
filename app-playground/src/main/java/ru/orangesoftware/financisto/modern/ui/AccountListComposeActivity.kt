@@ -1,4 +1,4 @@
-package ru.orangesoftware.financisto.playground.ui
+package ru.orangesoftware.financisto.modern.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
