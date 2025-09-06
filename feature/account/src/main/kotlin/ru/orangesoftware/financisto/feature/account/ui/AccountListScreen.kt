@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.orangesoftware.financisto.feature.account.AccountListAction
 import ru.orangesoftware.financisto.feature.account.AccountListScreenState
 import ru.orangesoftware.financisto.feature.account.AccountListUiState
@@ -30,7 +30,7 @@ import ru.orangesoftware.financisto.feature.account.ui.components.LoadingIndicat
  */
 @Composable
 fun AccountListScreen(
-    viewModel: AccountListViewModel = viewModel(),
+    viewModel: AccountListViewModel = hiltViewModel(),
     onNavigateToAccountDetails: (Long) -> Unit = {},
     onNavigateToCreateAccount: () -> Unit = {},
     onNavigateToAccountTotals: () -> Unit = {},
