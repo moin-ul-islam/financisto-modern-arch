@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import ru.orangesoftware.financisto.usecase.modern.CreateAccountUseCase
+import ru.orangesoftware.financisto.data.model.AccountEntity
 import javax.inject.Inject
 
 /**
@@ -22,7 +24,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
-    // TODO: Inject use cases when they become available
+    private val createAccountUseCase: CreateAccountUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAccountUiState())
@@ -192,14 +194,26 @@ class CreateAccountViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(saveState = SaveState.Saving)
             
             try {
-                // TODO: Create Account entity from UI state and save using use case
-                // This would use createAccountUseCase.execute() when available
+                // Convert UI state to AccountEntity
+                val accountEntity = createAccountEntityFromUiState(currentState)
                 
-                // For now, simulate successful save
-                val accountId = System.currentTimeMillis() // Mock account ID
+                // Use the CreateAccountUseCase to save the account
+                val result = createAccountUseCase.execute(accountEntity)
                 
-                _uiState.value = _uiState.value.copy(
-                    saveState = SaveState.Success(accountId)
+                result.fold(
+                    onSuccess = { accountId ->
+                        _uiState.value = _uiState.value.copy(
+                            saveState = SaveState.Success(accountId)
+                        )
+                    },
+                    onFailure = { exception ->
+                        _uiState.value = _uiState.value.copy(
+                            saveState = SaveState.Error(
+                                message = "Failed to save account: ${exception.message}",
+                                exception = exception
+                            )
+                        )
+                    }
                 )
                 
             } catch (e: Exception) {
@@ -334,6 +348,44 @@ class CreateAccountViewModel @Inject constructor(
             ElectronicPaymentTypeOption("WEBMONEY", "WebMoney", android.R.drawable.ic_menu_gallery),
             ElectronicPaymentTypeOption("YANDEX_MONEY", "Yandex.Money", android.R.drawable.ic_menu_gallery)
         )
+    }
+
+    /**
+     * Converts the current UI state to an AccountEntity for saving.
+     */
+    private fun createAccountEntityFromUiState(state: CreateAccountUiState): AccountEntity {
+        return AccountEntity(
+            id = 0, // Auto-generated
+            title = state.title.trim(),
+            type = state.selectedAccountType?.name ?: "CASH",
+            currencyId = state.selectedCurrency?.id ?: 1, // Default currency if none selected
+            totalAmount = parseAmountToLong(state.openingAmount),
+            isActive = true,
+            isIncludeIntoTotals = state.isIncludedInTotals,
+            creationDate = System.currentTimeMillis(),
+            lastTransactionDate = 0,
+            note = state.note.trim().takeIf { it.isNotBlank() },
+            issuer = state.issuerName.trim().takeIf { it.isNotBlank() },
+            number = state.cardNumber.trim().takeIf { it.isNotBlank() },
+            sortOrder = state.sortOrder.toIntOrNull() ?: 0,
+            limitAmount = parseAmountToLong(state.limitAmount),
+            cardIssuer = state.selectedCardIssuer?.name,
+            closingDay = state.closingDay.toIntOrNull() ?: 0,
+            paymentDay = state.paymentDay.toIntOrNull() ?: 0
+        )
+    }
+
+    /**
+     * Parses amount string to long value (in cents/smallest currency unit).
+     */
+    private fun parseAmountToLong(amountStr: String): Long {
+        if (amountStr.isBlank()) return 0
+        return try {
+            // Assuming amounts are stored as cents (multiply by 100)
+            (amountStr.toDouble() * 100).toLong()
+        } catch (e: NumberFormatException) {
+            0
+        }
     }
 
     companion object {
