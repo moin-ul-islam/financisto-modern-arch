@@ -9,32 +9,32 @@ versionCode = "122"
 versionName = "1.8.3"
 
 # Build Tools
-androidGradlePlugin = "7.3.0"
-kotlin = "1.7.10"
-kotlinCoroutines = "1.6.4"
+androidGradlePlugin = "7.4.2"
+kotlin = "1.8.22"
+kotlinCoroutines = "1.7.3"
 
 # AndroidX
 androidxCoreKtx = "1.12.0"
-androidxActivity = "1.8.0"
+androidxActivity = "1.8.2"
 androidxConstraintlayout = "2.1.4"
 androidxRecyclerview = "1.3.2"
-materialDesign = "1.9.0"
+materialDesign = "1.11.0"
 androidxLegacySupport = "1.0.0"
-androidxAppcompat = "1.1.0"
+androidxAppcompat = "1.6.1"
 androidxMultidex = "2.0.1"
-androidxTestCore = "1.2.0"
+androidxTestCore = "1.5.0"
 
 # Modern AndroidX Architecture Components
-androidxLifecycle = "2.6.2"
-androidxViewModel = "2.6.2"
-androidxLivedata = "2.6.2"
-androidxNavigation = "2.7.2"
-androidxRoom = "2.4.3"
-androidxFragment = "1.6.1"
+androidxLifecycle = "2.7.0"
+androidxViewModel = "2.7.0"
+androidxLivedata = "2.7.0"
+androidxNavigation = "2.7.7"
+androidxRoom = "2.6.1"
+androidxFragment = "1.6.2"
 
 # Hilt Dependency Injection
-hilt = "2.48"
-hiltAndroidxCompiler = "1.0.0"
+hilt = "2.51.1"
+hiltAndroidxCompiler = "1.2.0"
 
 # Google Play Services
 playServicesBase = "11.0.2"
@@ -45,30 +45,30 @@ playServicesPlus = "11.0.2"
 androidAnnotations = "4.6.0"
 
 # Third-party Libraries
-gson = "2.8.5"
+gson = "2.10.1"
 trove4j = "3.0.3"
-dropboxSdk = "3.0.8"
-okhttp = "3.10.0"
-okio = "1.14.0"
-eventbus = "3.1.1"
-materialDatetimePicker = "3.6.4"
-commonsIo = "2.5"
-rxjava = "2.2.2"
-rxandroid = "2.1.0"
-reactiveStreams = "1.0.2"
-glide = "4.10.0"
+dropboxSdk = "5.4.5"
+okhttp = "4.12.0"
+okio = "3.6.0"
+eventbus = "3.3.1"
+materialDatetimePicker = "4.2.3"
+commonsIo = "2.15.1"
+rxjava = "2.2.21"
+rxandroid = "2.1.1"
+reactiveStreams = "1.0.4"
+glide = "4.16.0"
 
 # Testing
-junit = "4.12"
-robolectric = "4.2.1"
+junit = "4.13.2"
+robolectric = "4.11.1"
 
 # Kotlin
-kotlinStdlib = "1.7.10"
+kotlinStdlib = "1.8.22"
 
 # Other
-compose = "1.3.1"
-composeCompiler = "1.3.1"
-composeBom = "2022.11.00"
+compose = "1.5.4"
+composeCompiler = "1.4.8"
+composeBom = "2023.06.01"
 
 [libraries]
 # AndroidX Core and UI
