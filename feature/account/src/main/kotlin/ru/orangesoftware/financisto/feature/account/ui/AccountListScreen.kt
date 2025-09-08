@@ -9,12 +9,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.navigation.compose.hiltViewModel
+import ru.orangesoftware.financisto.feature.account.AccountAction
+import ru.orangesoftware.financisto.feature.account.AccountActionCalloutUtils
 import ru.orangesoftware.financisto.feature.account.AccountListAction
 import ru.orangesoftware.financisto.feature.account.AccountListScreenState
 import ru.orangesoftware.financisto.feature.account.AccountListUiState
 import ru.orangesoftware.financisto.feature.account.AccountListViewModel
+import ru.orangesoftware.financisto.feature.account.AccountState
+import ru.orangesoftware.financisto.feature.account.ui.components.AccountActionCallout
 import ru.orangesoftware.financisto.feature.account.ui.components.AccountList
 import ru.orangesoftware.financisto.feature.account.ui.components.BottomToolbar
 import ru.orangesoftware.financisto.feature.account.ui.components.EmptyState
@@ -43,38 +51,130 @@ fun AccountListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     viewModel.handleAction(AccountListAction.LoadAccounts)
+    
+    // Callout state management
+    var showCallout by remember { mutableStateOf(false) }
+    var calloutAnchorBounds by remember { mutableStateOf(IntOffset.Zero) }
+    var selectedAccount by remember { mutableStateOf<AccountState?>(null) }
+    
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        AccountListContent(
-            uiState = uiState,
-            onAccountClick = { accountId ->
-                onNavigateToBlotter(accountId)
-            },
-            onAccountLongClick = { accountId ->
-                // This will be handled by showing a quick action menu
-                // For now, just navigate to account details
-                onNavigateToAccountDetails(accountId)
-            },
-            onAddClick = {
-                viewModel.handleAction(AccountListAction.CreateNewAccount)
-                onNavigateToCreateAccount()
-            },
-            onMenuClick = {
-                // Handle menu popup - this will be implemented later
-            },
-            onTotalClick = {
-                viewModel.handleAction(AccountListAction.ViewAccountTotals)
-                onNavigateToAccountTotals()
-            },
-            onRetryClick = {
-                viewModel.handleAction(AccountListAction.RetryLoading)
-            },
-            onDismissIntegrityError = {
-                viewModel.handleAction(AccountListAction.DismissIntegrityError)
+        Box(modifier = Modifier.fillMaxSize()) {
+            AccountListContent(
+                uiState = uiState,
+                onAccountClick = { accountId ->
+                    // For testing: also show callout on regular click
+                    // TODO: Remove this after testing - normally only long click should show callout
+                    android.util.Log.d("AccountCallout", "Regular click detected for account: $accountId")
+                    val screenState = uiState.screenState
+                    if (screenState is AccountListScreenState.Content) {
+                        val account = screenState.data.accounts.find { it.id == accountId }
+                        account?.let {
+                            val accountState = AccountState(
+                                id = it.id,
+                                isActive = it.isActive,
+                                title = it.title
+                            )
+                            selectedAccount = accountState
+                            calloutAnchorBounds = IntOffset(100, 100) // Dummy position for testing
+                            showCallout = true
+                        }
+                    }
+                    // Original behavior
+                    onNavigateToBlotter(accountId)
+                },
+                onAccountLongClick = { accountId, accountState, bounds ->
+                    // Show callout for account actions
+                    android.util.Log.d("AccountCallout", "Long click detected for account: ${accountState.title}")
+                    selectedAccount = accountState
+                    calloutAnchorBounds = bounds
+                    showCallout = true
+                },
+                onAddClick = {
+                    viewModel.handleAction(AccountListAction.CreateNewAccount)
+                    onNavigateToCreateAccount()
+                },
+                onMenuClick = {
+                    // Handle menu popup - this will be implemented later
+                },
+                onTotalClick = {
+                    viewModel.handleAction(AccountListAction.ViewAccountTotals)
+                    onNavigateToAccountTotals()
+                },
+                onRetryClick = {
+                    viewModel.handleAction(AccountListAction.RetryLoading)
+                },
+                onDismissIntegrityError = {
+                    viewModel.handleAction(AccountListAction.DismissIntegrityError)
+                }
+            )
+            
+            // Account Action Callout
+            selectedAccount?.let { account ->
+                android.util.Log.d("AccountCallout", "Showing callout for account: ${account.title}, visible: $showCallout")
+                val actions = AccountActionCalloutUtils.createAccountActions(account.isActive)
+                AccountActionCallout(
+                    actions = actions,
+                    isVisible = showCallout,
+                    anchorBounds = calloutAnchorBounds,
+                    onActionClick = { actionIndex ->
+                        val action = actions[actionIndex].action
+                        handleAccountAction(
+                            action = action,
+                            accountId = account.id,
+                            onNavigateToAccountDetails = onNavigateToAccountDetails,
+                            onNavigateToBlotter = onNavigateToBlotter,
+                            onNavigateToEditAccount = onNavigateToEditAccount,
+                            onNavigateToAddTransaction = onNavigateToAddTransaction,
+                            onNavigateToAddTransfer = onNavigateToAddTransfer,
+                            onNavigateToUpdateBalance = onNavigateToUpdateBalance,
+                            onNavigateToPurgeAccount = onNavigateToPurgeAccount
+                        )
+                        showCallout = false
+                        selectedAccount = null
+                    },
+                    onDismiss = {
+                        showCallout = false
+                        selectedAccount = null
+                    }
+                )
             }
-        )
+        }
+    }
+}
+
+/**
+ * Handles account action selection from the callout menu.
+ */
+private fun handleAccountAction(
+    action: AccountAction,
+    accountId: Long,
+    onNavigateToAccountDetails: (Long) -> Unit,
+    onNavigateToBlotter: (Long) -> Unit,
+    onNavigateToEditAccount: (Long) -> Unit,
+    onNavigateToAddTransaction: (Long) -> Unit,
+    onNavigateToAddTransfer: (Long) -> Unit,
+    onNavigateToUpdateBalance: (Long) -> Unit,
+    onNavigateToPurgeAccount: (Long) -> Unit
+) {
+    when (action) {
+        AccountAction.INFO -> onNavigateToAccountDetails(accountId)
+        AccountAction.BLOTTER -> onNavigateToBlotter(accountId)
+        AccountAction.EDIT -> onNavigateToEditAccount(accountId)
+        AccountAction.TRANSACTION -> onNavigateToAddTransaction(accountId)
+        AccountAction.TRANSFER -> onNavigateToAddTransfer(accountId)
+        AccountAction.BALANCE -> onNavigateToUpdateBalance(accountId)
+        AccountAction.PURGE -> onNavigateToPurgeAccount(accountId)
+        AccountAction.CLOSE_REOPEN -> {
+            // TODO: Implement close/reopen functionality
+            android.util.Log.d("AccountAction", "Close/Reopen account: $accountId")
+        }
+        AccountAction.DELETE -> {
+            // TODO: Implement delete functionality with confirmation
+            android.util.Log.d("AccountAction", "Delete account: $accountId")
+        }
     }
 }
 
@@ -85,7 +185,7 @@ fun AccountListScreen(
 private fun AccountListContent(
     uiState: AccountListUiState,
     onAccountClick: (Long) -> Unit,
-    onAccountLongClick: (Long) -> Unit,
+    onAccountLongClick: (Long, AccountState, IntOffset) -> Unit,
     onAddClick: () -> Unit,
     onMenuClick: () -> Unit,
     onTotalClick: () -> Unit,
