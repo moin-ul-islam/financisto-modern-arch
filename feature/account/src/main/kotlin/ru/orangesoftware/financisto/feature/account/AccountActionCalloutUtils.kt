@@ -58,7 +58,7 @@ object AccountActionCalloutUtils {
         // 7. Delete Old Transactions
         actions.add(AccountActionCalloutItem(
             iconResId = R.drawable.ic_action_flash,
-            title = "Delete old transactions",
+            title = "Purge", // Shorter title
             action = AccountAction.PURGE
         ))
         
@@ -66,13 +66,13 @@ object AccountActionCalloutUtils {
         if (isAccountActive) {
             actions.add(AccountActionCalloutItem(
                 iconResId = R.drawable.ic_action_lock_closed,
-                title = "Close account",
+                title = "Close", // Shorter title
                 action = AccountAction.CLOSE_REOPEN
             ))
         } else {
             actions.add(AccountActionCalloutItem(
                 iconResId = R.drawable.ic_action_lock_open,
-                title = "Re-open account",
+                title = "Reopen", // Shorter title
                 action = AccountAction.CLOSE_REOPEN
             ))
         }
@@ -80,7 +80,7 @@ object AccountActionCalloutUtils {
         // 9. Delete Account
         actions.add(AccountActionCalloutItem(
             iconResId = R.drawable.ic_action_trash,
-            title = "Delete account",
+            title = "Delete", // Shorter title
             action = AccountAction.DELETE
         ))
         
