@@ -65,24 +65,6 @@ fun AccountListScreen(
             AccountListContent(
                 uiState = uiState,
                 onAccountClick = { accountId ->
-                    // For testing: also show callout on regular click
-                    // TODO: Remove this after testing - normally only long click should show callout
-                    android.util.Log.d("AccountCallout", "Regular click detected for account: $accountId")
-                    val screenState = uiState.screenState
-                    if (screenState is AccountListScreenState.Content) {
-                        val account = screenState.data.accounts.find { it.id == accountId }
-                        account?.let {
-                            val accountState = AccountState(
-                                id = it.id,
-                                isActive = it.isActive,
-                                title = it.title
-                            )
-                            selectedAccount = accountState
-                            calloutAnchorBounds = IntOffset(100, 100) // Dummy position for testing
-                            showCallout = true
-                        }
-                    }
-                    // Original behavior
                     onNavigateToBlotter(accountId)
                 },
                 onAccountLongClick = { accountId, accountState, bounds ->
