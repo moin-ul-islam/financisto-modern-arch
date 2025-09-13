@@ -272,11 +272,11 @@ private fun CalloutContent(
             )
             .border(
                 width = 0.5.dp,
-                color = Color(0xFFE7E0EC), // Material3 outline variant
+                color = MaterialTheme.colorScheme.outlineVariant, // Use theme-aware outline color
                 shape = calloutShape
             ),
         shape = calloutShape,
-        color = Color(0xFFFFFBFE), // Material3 surface color - same as arrow
+        color = MaterialTheme.colorScheme.surfaceVariant, // Theme-aware surface with slight contrast
         shadowElevation = 12.dp
     ) {
         ActionGrid(
