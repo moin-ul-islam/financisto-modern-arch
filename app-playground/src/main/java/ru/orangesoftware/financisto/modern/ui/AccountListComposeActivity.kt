@@ -9,9 +9,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import ru.orangesoftware.financisto.feature.account.ui.AccountListScreen
 import ru.orangesoftware.financisto.feature.account.ui.CreateAccountScreen
@@ -70,8 +72,7 @@ private fun AccountNavigationGraph(
                     navController.navigate("edit_account/$accountId")
                 },
                 onNavigateToAddTransaction = { accountId ->
-                    // TODO: Implement transaction navigation
-                    android.util.Log.d("Navigation", "Navigate to add transaction for account: $accountId")
+                    navController.navigate("transaction_form?accountId=$accountId")
                 },
                 onNavigateToAddTransfer = { accountId ->
                     // TODO: Implement transfer navigation
@@ -117,6 +118,33 @@ private fun AccountNavigationGraph(
                 },
                 onAccountCreated = { updatedAccountId ->
                     android.util.Log.d("Navigation", "Account $accountId updated with ID: $updatedAccountId")
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(
+            route = "transaction_form?accountId={accountId}&transactionId={transactionId}",
+            arguments = listOf(
+                navArgument("accountId") { 
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("transactionId") { 
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getLong("accountId") ?: -1L
+            val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: -1L
+            
+            ru.orangesoftware.financisto.feature.transaction.ui.TransactionFormScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onTransactionSaved = { savedTransactionId ->
+                    android.util.Log.d("Navigation", "Transaction saved with ID: $savedTransactionId")
                     navController.popBackStack()
                 }
             )

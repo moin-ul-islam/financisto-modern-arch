@@ -47,11 +47,20 @@ data class TransactionFormUiState(
     val dateTime: Long = System.currentTimeMillis(),
     val formattedDateTime: String = "",
     
+    // UI state flags
+    val status: String = "CL", // CL = Cleared, RC = Reconciled, PN = Pending, UR = Unreconciled
+    val isIncome: Boolean = false,
+    val isTransferEnabled: Boolean = true,
+    val isShowPayee: Boolean = true,
+    val isShowProject: Boolean = true,
+    val isShowLocation: Boolean = true,
+    
     // Transfer specific
     val isTransfer: Boolean = false,
     val selectedToAccount: AccountOption? = null,
     val exchangeRate: String = "1.0",
     val toAmount: String = "",
+    val isDifferentCurrency: Boolean = false,
     
     // Split transaction
     val isSplitTransaction: Boolean = false,
@@ -101,20 +110,20 @@ data class CategoryOption(
 
 data class PayeeOption(
     val id: Long,
-    val title: String
+    val name: String
 )
 
 data class ProjectOption(
     val id: Long,
-    val title: String,
-    val isActive: Boolean
+    val name: String,
+    val isActive: Boolean = true
 )
 
 data class LocationOption(
     val id: Long,
     val name: String,
-    val latitude: Double,
-    val longitude: Double
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
 /**
@@ -122,13 +131,15 @@ data class LocationOption(
  */
 data class SplitTransactionItem(
     val id: Long = -1,
-    val categoryId: Long,
-    val categoryTitle: String,
-    val amount: String,
-    val formattedAmount: String,
-    val note: String,
+    val categoryId: Long = 0,
+    val categoryName: String? = null,
+    val accountId: Long = 0,
+    val accountName: String? = null,
+    val amount: Long = 0,
+    val formattedAmount: String = "",
+    val note: String? = null,
     val projectId: Long? = null,
-    val projectTitle: String? = null
+    val projectName: String? = null
 )
 
 /**

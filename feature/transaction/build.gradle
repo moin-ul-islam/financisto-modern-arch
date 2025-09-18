@@ -28,6 +28,11 @@ android {
     
     buildFeatures {
         viewBinding true
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion libs.versions.composeCompiler.get()
     }
 }
 
@@ -36,7 +41,7 @@ dependencies {
     implementation project(':core:ui')
     implementation project(':usecase')
     implementation project(':repository')
-    
+
     implementation libs.bundles.kotlin
     implementation libs.androidx.core.ktx
     implementation libs.androidx.activity.ktx
@@ -48,7 +53,14 @@ dependencies {
     // Dependency Injection
     implementation libs.bundles.hilt
     kapt libs.hilt.compiler
-    
+
+    // Compose
+    implementation platform(libs.compose.bom)
+    implementation libs.bundles.compose
+    implementation libs.compose.ui.tooling
+    implementation libs.compose.navigation
+    implementation libs.compose.hilt.navigation
+
     // Coroutines
     implementation libs.bundles.coroutines
     
