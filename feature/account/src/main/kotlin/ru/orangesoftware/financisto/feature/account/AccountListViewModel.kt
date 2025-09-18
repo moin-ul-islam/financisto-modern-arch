@@ -12,6 +12,7 @@ import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.DeleteAccountUseCase
+import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
 import javax.inject.Inject
 
 /**
@@ -30,6 +31,7 @@ class AccountListViewModel @Inject constructor(
     private val getAccountsUseCase: GetAccountsUseCase,
     private val getAccountByIdUseCase: GetAccountByIdUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val updateAccountUseCase: UpdateAccountUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -58,6 +60,9 @@ class AccountListViewModel @Inject constructor(
             is AccountListAction.IntegrityCheck -> performIntegrityCheck()
             is AccountListAction.DismissIntegrityError -> dismissIntegrityError()
             is AccountListAction.CalculateTotals -> calculateTotals()
+            is AccountListAction.DismissAccountInfoDialog -> dismissAccountInfoDialog()
+            is AccountListAction.DismissDeleteConfirmDialog -> dismissDeleteConfirmDialog()
+            is AccountListAction.ConfirmDeleteAccount -> confirmDeleteAccount(action.accountId)
         }
     }
 
@@ -137,14 +142,24 @@ class AccountListViewModel @Inject constructor(
     }
 
     private fun deleteAccount(accountId: Long) {
+        // Show confirmation dialog instead of immediately deleting
         viewModelScope.launch(ioDispatcher) {
             try {
-                deleteAccountUseCase.execute(accountId)
-                loadAccounts() // Refresh the list
+                // Find the account in current list to show in confirmation dialog
+                val currentState = _uiState.value.screenState
+                if (currentState is AccountListScreenState.Content) {
+                    val accountToDelete = currentState.data.accounts.find { it.id == accountId }
+                    if (accountToDelete != null) {
+                        _uiState.value = _uiState.value.copy(
+                            showDeleteConfirmDialog = true,
+                            accountToDelete = accountToDelete
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     screenState = AccountListScreenState.Error(
-                        message = "Failed to delete account: ${e.message}",
+                        message = "Failed to prepare delete confirmation: ${e.message}",
                         exception = e,
                         canRetry = false
                     )
@@ -154,12 +169,13 @@ class AccountListViewModel @Inject constructor(
     }
 
     private fun toggleAccountStatus(accountId: Long) {
-        // TODO: Implement toggle account status when use case is available
         viewModelScope.launch(ioDispatcher) {
             try {
                 val account = getAccountByIdUseCase.execute(accountId)
                 if (account != null) {
-                    // TODO: Update account status
+                    // Toggle the account active status
+                    val updatedAccount = account.copy(isActive = !account.isActive)
+                    updateAccountUseCase.execute(updatedAccount)
                     loadAccounts() // Refresh the list
                 }
             } catch (e: Exception) {
@@ -204,7 +220,39 @@ class AccountListViewModel @Inject constructor(
     }
     
     private fun showAccountInfo(accountId: Long) {
-        // TODO: Navigate to account info screen
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val account = getAccountByIdUseCase.execute(accountId)
+                if (account != null) {
+                    val accountInfoData = AccountInfoData(
+                        accountId = account.id,
+                        title = account.title,
+                        accountType = getAccountTypeDisplayName(account.type),
+                        currency = getCurrencySymbol(account.currencyId),
+                        balance = account.totalAmount.toString(),
+                        formattedBalance = formatAmount(account.totalAmount, account.currencyId),
+                        issuer = account.issuer,
+                        cardNumber = account.number,
+                        note = account.note,
+                        isActive = account.isActive,
+                        lastTransactionDate = formatDate(account.lastTransactionDate)
+                    )
+                    
+                    _uiState.value = _uiState.value.copy(
+                        showAccountInfoDialog = true,
+                        accountInfoData = accountInfoData
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    screenState = AccountListScreenState.Error(
+                        message = "Failed to load account info: ${e.message}",
+                        exception = e,
+                        canRetry = false
+                    )
+                )
+            }
+        }
     }
     
     private fun updateAccountBalance(accountId: Long) {
@@ -216,12 +264,52 @@ class AccountListViewModel @Inject constructor(
     }
     
     private fun dismissIntegrityError() {
-        // If we're in error state, try to go back to empty or retry loading
-        val currentState = _uiState.value.screenState
-        if (currentState is AccountListScreenState.Error) {
-            _uiState.value = _uiState.value.copy(
-                screenState = AccountListScreenState.Empty
-            )
+        _uiState.value = _uiState.value.copy(showIntegrityError = false)
+    }
+    
+    private fun dismissAccountInfoDialog() {
+        _uiState.value = _uiState.value.copy(
+            showAccountInfoDialog = false,
+            accountInfoData = null
+        )
+    }
+    
+    private fun dismissDeleteConfirmDialog() {
+        _uiState.value = _uiState.value.copy(
+            showDeleteConfirmDialog = false,
+            accountToDelete = null
+        )
+    }
+    
+    private fun confirmDeleteAccount(accountId: Long) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val result = deleteAccountUseCase.execute(accountId)
+                if (result.isSuccess) {
+                    // Dismiss dialog and refresh the list
+                    _uiState.value = _uiState.value.copy(
+                        showDeleteConfirmDialog = false,
+                        accountToDelete = null
+                    )
+                    loadAccounts() // Refresh the list
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        screenState = AccountListScreenState.Error(
+                            message = "Failed to delete account: ${result.exceptionOrNull()?.message}",
+                            exception = result.exceptionOrNull(),
+                            canRetry = false
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    screenState = AccountListScreenState.Error(
+                        message = "Failed to delete account: ${e.message}",
+                        exception = e,
+                        canRetry = false
+                    )
+                )
+            }
         }
     }
     

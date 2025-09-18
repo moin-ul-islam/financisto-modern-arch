@@ -24,6 +24,7 @@ import ru.orangesoftware.financisto.feature.account.ui.components.createaccount.
  * 
  * This composable maintains the same visual appearance and functionality as the legacy
  * AccountActivity while using modern Compose UI and clean architecture.
+ * Supports both create and edit modes based on the accountId parameter in navigation.
  */
 @Composable
 fun CreateAccountScreen(
@@ -89,10 +90,13 @@ private fun CreateAccountContent(
     onNavigateBack: () -> Unit,
     onNavigateToAddCurrency: () -> Unit
 ) {
+    // Determine if we're in edit mode based on pre-filled data
+    val isEditMode = uiState.title.isNotBlank() || uiState.selectedAccountType != null
+    
     Column(modifier = Modifier.fillMaxSize()) {
         // Top App Bar
         TopAppBar(
-            title = { Text("Create Account") },
+            title = { Text(if (isEditMode) "Edit Account" else "Create Account") },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
@@ -273,7 +277,8 @@ private fun CreateAccountContent(
             onSaveClick = {
                 onAction(CreateAccountAction.SaveAccount)
             },
-            onCancelClick = onNavigateBack
+            onCancelClick = onNavigateBack,
+            saveButtonText = if (isEditMode) "Update" else "Save"
         )
 
         // Save Error Dialog

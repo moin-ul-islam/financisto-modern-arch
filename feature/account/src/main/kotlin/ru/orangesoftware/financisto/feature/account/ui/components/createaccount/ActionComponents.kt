@@ -14,6 +14,7 @@ fun ActionButtons(
     isSaving: Boolean,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit,
+    saveButtonText: String = "Save",
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -40,7 +41,7 @@ fun ActionButtons(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Save")
+                Text(saveButtonText)
             }
         }
     }
@@ -79,21 +80,24 @@ private fun ActionButtonsPreview() {
                 isFormValid = true,
                 isSaving = false,
                 onSaveClick = {},
-                onCancelClick = {}
+                onCancelClick = {},
+                saveButtonText = "Save"
             )
             
             ActionButtons(
                 isFormValid = false,
                 isSaving = false,
                 onSaveClick = {},
-                onCancelClick = {}
+                onCancelClick = {},
+                saveButtonText = "Save"
             )
             
             ActionButtons(
                 isFormValid = true,
                 isSaving = true,
                 onSaveClick = {},
-                onCancelClick = {}
+                onCancelClick = {},
+                saveButtonText = "Update"
             )
         }
     }

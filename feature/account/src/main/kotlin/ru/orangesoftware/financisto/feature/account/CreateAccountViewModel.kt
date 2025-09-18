@@ -1,5 +1,6 @@
 package ru.orangesoftware.financisto.feature.account
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import ru.orangesoftware.financisto.usecase.modern.CreateAccountUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
+import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
 import ru.orangesoftware.financisto.data.model.AccountEntity
 import javax.inject.Inject
 
@@ -24,11 +27,18 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
-    private val createAccountUseCase: CreateAccountUseCase
+    private val savedStateHandle: SavedStateHandle,
+    private val createAccountUseCase: CreateAccountUseCase,
+    private val getAccountByIdUseCase: GetAccountByIdUseCase,
+    private val updateAccountUseCase: UpdateAccountUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAccountUiState())
     val uiState: StateFlow<CreateAccountUiState> = _uiState.asStateFlow()
+
+    // Check if we're editing an existing account
+    private val accountId: Long = savedStateHandle.get<String>("accountId")?.toLongOrNull() ?: -1L
+    private val isEditMode: Boolean = accountId > 0
 
     init {
         loadInitialData()
@@ -84,6 +94,11 @@ class CreateAccountViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     screenState = CreateAccountScreenState.Content(contentData)
                 )
+
+                // If in edit mode, load the existing account data
+                if (isEditMode) {
+                    loadAccountForEdit(accountId)
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     screenState = CreateAccountScreenState.Error(
@@ -93,6 +108,68 @@ class CreateAccountViewModel @Inject constructor(
                 )
             }
         }
+    }
+    
+    private fun loadAccountForEdit(accountId: Long) {
+        viewModelScope.launch {
+            try {
+                val account = getAccountByIdUseCase.execute(accountId)
+                if (account != null) {
+                    // Pre-fill the form with existing account data
+                    populateFormFromAccount(account)
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        screenState = CreateAccountScreenState.Error(
+                            message = "Account not found",
+                            canRetry = false
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    screenState = CreateAccountScreenState.Error(
+                        message = "Failed to load account: ${e.message}",
+                        canRetry = true
+                    )
+                )
+            }
+        }
+    }
+
+    private fun populateFormFromAccount(account: AccountEntity) {
+        val currentState = _uiState.value
+        val contentData = (currentState.screenState as? CreateAccountScreenState.Content)?.data
+            ?: return
+
+        // Find the matching account type
+        val accountType = contentData.availableAccountTypes.find { it.name == account.type }
+        
+        // Find the matching currency
+        val currency = contentData.availableCurrencies.find { it.id == account.currencyId }
+        
+        // Find the matching card issuer if applicable
+        val cardIssuer = account.cardIssuer?.let { issuerName ->
+            contentData.availableCardIssuers.find { it.name == issuerName }
+        }
+
+        _uiState.value = _uiState.value.copy(
+            title = account.title,
+            selectedAccountType = accountType,
+            selectedCardIssuer = cardIssuer,
+            issuerName = account.issuer ?: "",
+            cardNumber = account.number ?: "",
+            closingDay = if (account.closingDay > 0) account.closingDay.toString() else "",
+            paymentDay = if (account.paymentDay > 0) account.paymentDay.toString() else "",
+            selectedCurrency = currency,
+            limitAmount = if (account.limitAmount > 0) formatAmountFromLong(account.limitAmount) else "",
+            openingAmount = if (account.totalAmount != 0L) formatAmountFromLong(account.totalAmount) else "",
+            note = account.note ?: "",
+            sortOrder = if (account.sortOrder > 0) account.sortOrder.toString() else "",
+            isIncludedInTotals = account.isIncludeIntoTotals
+        )
+        
+        // Validate the form after populating
+        validateForm()
     }
     
     private fun getMockCurrencies(): List<CurrencyOption> {
@@ -194,27 +271,56 @@ class CreateAccountViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(saveState = SaveState.Saving)
             
             try {
-                // Convert UI state to AccountEntity
-                val accountEntity = createAccountEntityFromUiState(currentState)
-                
-                // Use the CreateAccountUseCase to save the account
-                val result = createAccountUseCase.execute(accountEntity)
-                
-                result.fold(
-                    onSuccess = { accountId ->
-                        _uiState.value = _uiState.value.copy(
-                            saveState = SaveState.Success(accountId)
-                        )
-                    },
-                    onFailure = { exception ->
-                        _uiState.value = _uiState.value.copy(
-                            saveState = SaveState.Error(
-                                message = "Failed to save account: ${exception.message}",
-                                exception = exception
+                if (isEditMode) {
+                    // Update existing account
+                    val updatedAccount = createAccountEntityFromUiState(currentState).copy(id = accountId)
+                    val result = updateAccountUseCase.execute(updatedAccount)
+                    
+                    result.fold(
+                        onSuccess = { success ->
+                            if (success) {
+                                _uiState.value = _uiState.value.copy(
+                                    saveState = SaveState.Success(accountId)
+                                )
+                            } else {
+                                _uiState.value = _uiState.value.copy(
+                                    saveState = SaveState.Error(
+                                        message = "Failed to update account",
+                                        exception = null
+                                    )
+                                )
+                            }
+                        },
+                        onFailure = { exception ->
+                            _uiState.value = _uiState.value.copy(
+                                saveState = SaveState.Error(
+                                    message = "Failed to update account: ${exception.message}",
+                                    exception = exception
+                                )
                             )
-                        )
-                    }
-                )
+                        }
+                    )
+                } else {
+                    // Create new account
+                    val accountEntity = createAccountEntityFromUiState(currentState)
+                    val result = createAccountUseCase.execute(accountEntity)
+                    
+                    result.fold(
+                        onSuccess = { accountId ->
+                            _uiState.value = _uiState.value.copy(
+                                saveState = SaveState.Success(accountId)
+                            )
+                        },
+                        onFailure = { exception ->
+                            _uiState.value = _uiState.value.copy(
+                                saveState = SaveState.Error(
+                                    message = "Failed to create account: ${exception.message}",
+                                    exception = exception
+                                )
+                            )
+                        }
+                    )
+                }
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -385,6 +491,29 @@ class CreateAccountViewModel @Inject constructor(
             (amountStr.toDouble() * 100).toLong()
         } catch (e: NumberFormatException) {
             0
+        }
+    }
+
+    /**
+     * Formats a long amount value to string representation for UI.
+     */
+    private fun formatAmountFromLong(amountLong: Long): String {
+        return if (amountLong == 0L) {
+            ""
+        } else {
+            try {
+                // Convert from cents to decimal representation
+                val amount = amountLong / 100.0
+                if (amount == amount.toLong().toDouble()) {
+                    // Whole number, show without decimals
+                    amount.toLong().toString()
+                } else {
+                    // Has decimals, format with 2 decimal places
+                    String.format("%.2f", amount)
+                }
+            } catch (e: Exception) {
+                ""
+            }
         }
     }
 

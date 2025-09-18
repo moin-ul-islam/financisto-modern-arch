@@ -25,7 +25,11 @@ data class AccountListUiState(
     val totalCalculationState: TotalCalculationState = TotalCalculationState.Idle,
     val selectedSortOrder: AccountSortOrder = AccountSortOrder.NAME,
     val showIntegrityError: Boolean = false,
-    val showMenuButton: Boolean = true
+    val showMenuButton: Boolean = true,
+    val showAccountInfoDialog: Boolean = false,
+    val accountInfoData: AccountInfoData? = null,
+    val showDeleteConfirmDialog: Boolean = false,
+    val accountToDelete: AccountListItem? = null
 )
 
 /**
@@ -75,6 +79,24 @@ data class AccountListItem(
 )
 
 /**
+ * Data for account info dialog
+ */
+data class AccountInfoData(
+    val accountId: Long,
+    val title: String,
+    val accountType: String,
+    val currency: String,
+    val balance: String,
+    val formattedBalance: String,
+    val issuer: String? = null,
+    val cardNumber: String? = null,
+    val limitAmount: String? = null,
+    val note: String? = null,
+    val isActive: Boolean,
+    val lastTransactionDate: String? = null
+)
+
+/**
  * Sort orders for account list.
  */
 enum class AccountSortOrder {
@@ -104,4 +126,7 @@ sealed class AccountListAction {
     object IntegrityCheck : AccountListAction()
     object DismissIntegrityError : AccountListAction()
     object CalculateTotals : AccountListAction()
+    object DismissAccountInfoDialog : AccountListAction()
+    object DismissDeleteConfirmDialog : AccountListAction()
+    data class ConfirmDeleteAccount(val accountId: Long) : AccountListAction()
 }
