@@ -9,10 +9,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
+import ru.orangesoftware.financisto.domain.model.Currency
+import ru.orangesoftware.financisto.domain.model.CurrencyId
+import ru.orangesoftware.financisto.domain.model.Money
+import ru.orangesoftware.financisto.domain.model.SymbolFormat
 import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.DeleteAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetCurrenciesUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetCurrencyByIdUseCase
 import javax.inject.Inject
 
 /**
@@ -32,11 +38,15 @@ class AccountListViewModel @Inject constructor(
     private val getAccountByIdUseCase: GetAccountByIdUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
     private val updateAccountUseCase: UpdateAccountUseCase,
+    private val getCurrencyByIdUseCase: GetCurrencyByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountListUiState())
     val uiState: StateFlow<AccountListUiState> = _uiState.asStateFlow()
+
+    // Cache for currencies to avoid repeated database calls
+    private val currencyCache = mutableMapOf<Long, Currency>()
 
     /**
      * Public method to handle user actions.
@@ -84,13 +94,35 @@ class AccountListViewModel @Inject constructor(
                     return@launch
                 }
                 
+                // Load all currencies upfront to avoid repeated database calls
+                val uniqueCurrencyIds = accounts.map { it.currencyId }.distinct()
+                val currencyMap = mutableMapOf<Long, Currency>()
+                
+                uniqueCurrencyIds.forEach { currencyId ->
+                    val currency = getCurrency(currencyId)
+                    if (currency != null) {
+                        currencyMap[currencyId] = currency
+                    }
+                }
+                
                 val accountItems = accounts.map { account ->
+                    val currency = currencyMap[account.currencyId]
+                    val formattedBalance = if (currency != null) {
+                        val money = Money(account.totalAmount)
+                        currency.formatAmount(money)
+                    } else {
+                        // Fallback formatting
+                        "$${account.totalAmount / 100}.${String.format("%02d", account.totalAmount % 100)}"
+                    }
+                    
+                    val currencySymbol = currency?.symbol ?: "$"
+                    
                     AccountListItem(
                         id = account.id,
                         title = account.title,
                         balance = account.totalAmount.toString(),
-                        formattedBalance = formatAmount(account.totalAmount, account.currencyId),
-                        currencySymbol = getCurrencySymbol(account.currencyId),
+                        formattedBalance = formattedBalance,
+                        currencySymbol = currencySymbol,
                         accountType = getAccountTypeDisplayName(account.type),
                         iconResId = getAccountTypeIcon(account.type),
                         isActive = account.isActive,
@@ -351,9 +383,15 @@ class AccountListViewModel @Inject constructor(
     }
 
     // Helper functions for UI formatting and business logic
-    private fun formatAmount(amount: Long, currencyId: Long): String {
-        // TODO: Implement proper amount formatting with currency
-        return "$${amount / 100}.${String.format("%02d", amount % 100)}"
+    private suspend fun formatAmount(amount: Long, currencyId: Long): String {
+        val currency = getCurrency(currencyId)
+        return if (currency != null) {
+            val money = Money(amount)
+            currency.formatAmount(money)
+        } else {
+            // Fallback to basic formatting if currency not found
+            "$${amount / 100}.${String.format("%02d", amount % 100)}"
+        }
     }
 
     private fun formatDate(timestamp: Long): String {
@@ -362,9 +400,36 @@ class AccountListViewModel @Inject constructor(
             .format(java.util.Date(timestamp))
     }
 
-    private fun getCurrencySymbol(currencyId: Long): String {
-        // TODO: Implement currency symbol resolution
-        return "$"
+    private suspend fun getCurrencySymbol(currencyId: Long): String {
+        val currency = getCurrency(currencyId)
+        return currency?.symbol ?: "$"
+    }
+
+    private suspend fun getCurrency(currencyId: Long): Currency? {
+        // Check cache first
+        currencyCache[currencyId]?.let { return it }
+
+        // Load from database if not in cache
+        val currencyEntity = getCurrencyByIdUseCase.execute(currencyId)
+        if (currencyEntity != null) {
+            val currency = Currency(
+                id = CurrencyId(currencyEntity.id),
+                name = currencyEntity.name,
+                title = currencyEntity.title,
+                symbol = currencyEntity.symbol,
+                isDefault = currencyEntity.isDefault,
+                decimals = currencyEntity.decimals,
+                decimalSeparator = currencyEntity.decimalSeparator,
+                groupSeparator = currencyEntity.groupSeparator,
+                symbolFormat = SymbolFormat.valueOf(currencyEntity.symbolFormat),
+                isActive = true // Default to active since entity doesn't have this field
+            )
+            // Cache the currency
+            currencyCache[currencyId] = currency
+            return currency
+        }
+
+        return null
     }
 
     private fun getAccountTypeDisplayName(type: String): String {
@@ -377,7 +442,7 @@ class AccountListViewModel @Inject constructor(
         return android.R.drawable.ic_menu_save
     }
 
-    private fun calculateTotalBalance(accounts: List<AccountListItem>): String {
+    private suspend fun calculateTotalBalance(accounts: List<AccountListItem>): String {
         val total = accounts
             .filter { it.isIncludeIntoTotals }
             .sumOf { it.balance.toLongOrNull() ?: 0L }
