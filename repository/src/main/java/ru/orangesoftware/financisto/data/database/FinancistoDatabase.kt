@@ -6,6 +6,17 @@ import androidx.room.RoomDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
 import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
+import ru.orangesoftware.financisto.data.dao.CategoryDao
+import ru.orangesoftware.financisto.data.dao.BudgetDao
+import ru.orangesoftware.financisto.data.dao.ProjectDao
+import ru.orangesoftware.financisto.data.dao.AttributeDao
+import ru.orangesoftware.financisto.data.dao.SmsTemplateDao
+import ru.orangesoftware.financisto.data.dao.LocationDao
+import ru.orangesoftware.financisto.data.dao.PayeeDao
+import ru.orangesoftware.financisto.data.dao.CategoryAttributeDao
+import ru.orangesoftware.financisto.data.dao.TransactionAttributeDao
+import ru.orangesoftware.financisto.data.dao.CreditCardClosingDateDao
+import ru.orangesoftware.financisto.data.dao.CurrencyExchangeRateDao
 import ru.orangesoftware.financisto.data.model.*
 
 /**
@@ -49,6 +60,17 @@ abstract class FinancistoDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
     abstract fun runningBalanceDao(): RunningBalanceDao
+    abstract fun categoryDao(): CategoryDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun projectDao(): ProjectDao
+    abstract fun attributeDao(): AttributeDao
+    abstract fun smsTemplateDao(): SmsTemplateDao
+    abstract fun locationDao(): LocationDao
+    abstract fun payeeDao(): PayeeDao
+    abstract fun categoryAttributeDao(): CategoryAttributeDao
+    abstract fun transactionAttributeDao(): TransactionAttributeDao
+    abstract fun creditCardClosingDateDao(): CreditCardClosingDateDao
+    abstract fun currencyExchangeRateDao(): CurrencyExchangeRateDao
     
     companion object {
         const val DATABASE_NAME = "financisto_modern.db"
