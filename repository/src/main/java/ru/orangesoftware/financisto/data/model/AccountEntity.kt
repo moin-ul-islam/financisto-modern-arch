@@ -65,6 +65,12 @@ data class AccountEntity(
     @ColumnInfo(name = "card_issuer")
     val cardIssuer: String? = null,
     
+    @ColumnInfo(name = "last_category_id")
+    val lastCategoryId: Long = 0,
+    
+    @ColumnInfo(name = "last_account_id")
+    val lastAccountId: Long = 0,
+    
     @ColumnInfo(name = "closing_day")
     val closingDay: Int = 0,
     

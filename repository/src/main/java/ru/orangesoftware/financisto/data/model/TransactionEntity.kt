@@ -96,8 +96,8 @@ data class TransactionEntity(
     @ColumnInfo(name = "longitude")
     val longitude: Double = 0.0,
     
-    @ColumnInfo(name = "is_ccard_payment")
-    val isCCardPayment: Boolean = false,
+    @ColumnInfo(name = "attached_picture")
+    val attachedPicture: String? = null,
     
     @ColumnInfo(name = "last_recurrence")
     val lastRecurrence: Long = 0,

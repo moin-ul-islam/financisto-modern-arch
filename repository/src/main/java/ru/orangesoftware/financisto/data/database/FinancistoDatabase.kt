@@ -3,15 +3,10 @@ package ru.orangesoftware.financisto.data.database
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
 import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
-import ru.orangesoftware.financisto.data.model.AccountEntity
-import ru.orangesoftware.financisto.data.model.CurrencyEntity
-import ru.orangesoftware.financisto.data.model.RunningBalanceEntity
-import ru.orangesoftware.financisto.data.model.TransactionEntity
+import ru.orangesoftware.financisto.data.model.*
 
 /**
  * Modern Room database for Financisto.
@@ -29,9 +24,24 @@ import ru.orangesoftware.financisto.data.model.TransactionEntity
         AccountEntity::class,
         CurrencyEntity::class,
         TransactionEntity::class,
-        RunningBalanceEntity::class
+        RunningBalanceEntity::class,
+        CategoryEntity::class,
+        BudgetEntity::class,
+        ProjectEntity::class,
+        AttributeEntity::class,
+        SmsTemplateEntity::class,
+        LocationEntity::class,
+        PayeeEntity::class,
+        CategoryAttributeEntity::class,
+        TransactionAttributeEntity::class,
+        CreditCardClosingDateEntity::class,
+        CurrencyExchangeRateEntity::class
     ],
-    version = 1,
+    views = [
+        CategoryView::class,
+        AttributeView::class
+    ],
+    version = 3,
     exportSchema = true
 )
 abstract class FinancistoDatabase : RoomDatabase() {
@@ -60,48 +70,9 @@ abstract class FinancistoDatabase : RoomDatabase() {
             }
             
             return builder
-                .addMigrations(MIGRATION_LEGACY_TO_1)
                 .fallbackToDestructiveMigration() // For development only
                 .build()
         }
-        
-        /**
-         * Migration from legacy SQLite database to Room.
-         * 
-         * This migration ensures data is preserved when transitioning
-         * from the legacy database structure to Room.
-         */
-        private val MIGRATION_LEGACY_TO_1 = object : Migration(0, 1) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // Room will create new tables if they don't exist
-                // Legacy data migration will be handled in a separate phase
-                
-                // Ensure indices for performance
-                database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS index_account_is_active 
-                    ON account(is_active)
-                """)
-                
-                database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS index_transactions_from_account_id 
-                    ON transactions(from_account_id)
-                """)
-                
-                database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS index_transactions_to_account_id 
-                    ON transactions(to_account_id)
-                """)
-                
-                database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS index_transactions_datetime 
-                    ON transactions(datetime)
-                """)
-                
-                database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS index_transactions_category_id 
-                    ON transactions(category_id)
-                """)
-            }
-        }
+
     }
 }
