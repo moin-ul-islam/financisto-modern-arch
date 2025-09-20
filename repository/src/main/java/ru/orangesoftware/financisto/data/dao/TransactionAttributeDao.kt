@@ -70,6 +70,12 @@ interface TransactionAttributeDao {
     suspend fun deleteTransactionsForAttribute(attributeId: Long)
 
     /**
+     * Delete transaction attributes for a transaction (alias for deleteAttributesForTransaction)
+     */
+    @Query("DELETE FROM transaction_attribute WHERE transaction_id = :transactionId")
+    suspend fun deleteTransactionAttributesForTransaction(transactionId: Long)
+
+    /**
      * Check if a transaction has a specific attribute
      */
     @Query("SELECT COUNT(*) > 0 FROM transaction_attribute WHERE transaction_id = :transactionId AND attribute_id = :attributeId")

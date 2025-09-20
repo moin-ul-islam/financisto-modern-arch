@@ -29,6 +29,7 @@ interface TransactionRepository {
     suspend fun deleteTransaction(id: Long): Boolean
     suspend fun getTransactionTemplates(): List<TransactionEntity>
     suspend fun getTotalAmountForAccount(accountId: Long, startDate: Long, endDate: Long): Long
+    suspend fun getTransactionCountForAccount(accountId: Long): Int
 }
 
 /**
@@ -112,5 +113,9 @@ class TransactionRepositoryImpl @Inject constructor(
         endDate: Long
     ): Long = withContext(ioDispatcher) {
         transactionDao.getTotalAmountForAccount(accountId, startDate, endDate)
+    }
+
+    override suspend fun getTransactionCountForAccount(accountId: Long): Int = withContext(ioDispatcher) {
+        transactionDao.getTransactionCountForAccount(accountId)
     }
 }
