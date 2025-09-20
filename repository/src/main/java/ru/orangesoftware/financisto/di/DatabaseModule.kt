@@ -11,6 +11,7 @@ import ru.orangesoftware.financisto.data.database.FinancistoDatabase
 import ru.orangesoftware.financisto.data.dao.AccountDao
 import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
+import ru.orangesoftware.financisto.data.dao.CurrencyDao
 import javax.inject.Singleton
 
 /**
@@ -54,5 +55,13 @@ object DatabaseModule {
     @Provides
     fun provideRunningBalanceDao(database: FinancistoDatabase): RunningBalanceDao {
         return database.runningBalanceDao()
+    }
+
+    /**
+     * Provides CurrencyDao from Room database
+     */
+    @Provides
+    fun provideCurrencyDao(database: FinancistoDatabase): CurrencyDao {
+        return database.currencyDao()
     }
 }

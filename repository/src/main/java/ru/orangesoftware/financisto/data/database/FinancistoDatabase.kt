@@ -17,6 +17,7 @@ import ru.orangesoftware.financisto.data.dao.CategoryAttributeDao
 import ru.orangesoftware.financisto.data.dao.TransactionAttributeDao
 import ru.orangesoftware.financisto.data.dao.CreditCardClosingDateDao
 import ru.orangesoftware.financisto.data.dao.CurrencyExchangeRateDao
+import ru.orangesoftware.financisto.data.dao.CurrencyDao
 import ru.orangesoftware.financisto.data.model.*
 
 /**
@@ -71,6 +72,7 @@ abstract class FinancistoDatabase : RoomDatabase() {
     abstract fun transactionAttributeDao(): TransactionAttributeDao
     abstract fun creditCardClosingDateDao(): CreditCardClosingDateDao
     abstract fun currencyExchangeRateDao(): CurrencyExchangeRateDao
+    abstract fun currencyDao(): CurrencyDao
     
     companion object {
         const val DATABASE_NAME = "financisto_modern.db"

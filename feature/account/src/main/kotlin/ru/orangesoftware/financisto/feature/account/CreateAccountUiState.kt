@@ -125,6 +125,7 @@ sealed class CreateAccountAction {
     data class SetClosingDay(val closingDay: String) : CreateAccountAction()
     data class SetPaymentDay(val paymentDay: String) : CreateAccountAction()
     data class SetCurrency(val currency: CurrencyOption) : CreateAccountAction()
+    data class SetCurrencyById(val currencyId: Long) : CreateAccountAction()
     data class SetLimitAmount(val amount: String) : CreateAccountAction()
     data class SetOpeningAmount(val amount: String) : CreateAccountAction()
     data class SetNote(val note: String) : CreateAccountAction()
@@ -133,4 +134,5 @@ sealed class CreateAccountAction {
     object SaveAccount : CreateAccountAction()
     object DismissSaveError : CreateAccountAction()
     object NavigateToAddCurrency : CreateAccountAction()
+    object RefreshCurrencies : CreateAccountAction()
 }

@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,21 +17,25 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
+import ru.orangesoftware.financisto.feature.account.CreateAccountViewModel
+import ru.orangesoftware.financisto.feature.account.CreateAccountAction
 import ru.orangesoftware.financisto.feature.account.ui.AccountListScreen
 import ru.orangesoftware.financisto.feature.account.ui.CreateAccountScreen
+import ru.orangesoftware.financisto.feature.account.ui.CurrencySelectionScreen
+import ru.orangesoftware.financisto.feature.account.ui.CreateCustomCurrencyScreen
 
 /**
  * Activity to showcase the new Compose-based Account List UI.
- * 
+ *
  * This activity demonstrates the modernized Account List implementation
  * using Jetpack Compose, Navigation Component, and the new feature module architecture.
  */
 @AndroidEntryPoint
 class AccountListComposeActivity : ComponentActivity() {
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         setContent {
             MaterialTheme {
                 Surface(
@@ -41,9 +47,7 @@ class AccountListComposeActivity : ComponentActivity() {
             }
         }
     }
-}
-
-@Composable
+}@Composable
 private fun AccountNavigationGraph(
     navController: NavHostController = rememberNavController()
 ) {
@@ -90,16 +94,80 @@ private fun AccountNavigationGraph(
         }
         
         composable("create_account") {
+            val viewModel = hiltViewModel<CreateAccountViewModel>()
+            val backStackEntry = navController.currentBackStackEntry
+            val shouldRefreshCurrencies = backStackEntry
+                ?.savedStateHandle
+                ?.getLiveData<Boolean>("refresh_currencies")
+                ?.value ?: false
+            val selectedCurrencyId = backStackEntry
+                ?.savedStateHandle
+                ?.getLiveData<Long>("selected_currency_id")
+                ?.value
+            
+            // Clear the flags
+            backStackEntry?.savedStateHandle?.set("refresh_currencies", false)
+            backStackEntry?.savedStateHandle?.set("selected_currency_id", null)
+            
             CreateAccountScreen(
+                viewModel = viewModel,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToAddCurrency = {
-                    // TODO: Implement add currency navigation
-                    android.util.Log.d("Navigation", "Navigate to add currency")
+                    navController.navigate("currency_selection")
                 },
                 onAccountCreated = { accountId ->
                     android.util.Log.d("Navigation", "Account created with ID: $accountId")
+                    navController.popBackStack()
+                }
+            )
+            
+            // Trigger refresh and auto-select if needed
+            LaunchedEffect(shouldRefreshCurrencies) {
+                if (shouldRefreshCurrencies) {
+                    viewModel.handleAction(CreateAccountAction.RefreshCurrencies)
+                    // Auto-select the currency after a short delay to ensure refresh is complete
+                    selectedCurrencyId?.let { currencyId ->
+                        kotlinx.coroutines.delay(100)
+                        viewModel.handleAction(CreateAccountAction.SetCurrencyById(currencyId))
+                    }
+                }
+            }
+        }
+        
+        composable("currency_selection") {
+            CurrencySelectionScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToCustomCurrency = {
+                    navController.navigate("create_custom_currency")
+                },
+                onCurrencySelected = { currencyId ->
+                    android.util.Log.d("Navigation", "Currency selected with ID: $currencyId")
+                    // Refresh currencies and select the new currency
+                    try {
+                        val backStackEntry = navController.getBackStackEntry("create_account")
+                        backStackEntry.savedStateHandle.set("refresh_currencies", true)
+                        backStackEntry.savedStateHandle.set("selected_currency_id", currencyId)
+                    } catch (e: Exception) {
+                        android.util.Log.e("Navigation", "Could not find create_account back stack entry")
+                    }
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("create_custom_currency") {
+            CreateCustomCurrencyScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCurrencyCreated = { currencyId ->
+                    android.util.Log.d("Navigation", "Custom currency created with ID: $currencyId")
+                    // Refresh currencies in the account creation screen
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_currencies", true)
                     navController.popBackStack()
                 }
             )
@@ -114,7 +182,7 @@ private fun AccountNavigationGraph(
                     navController.popBackStack()
                 },
                 onNavigateToAddCurrency = {
-                    android.util.Log.d("Navigation", "Navigate to add currency from edit account: $accountId")
+                    navController.navigate("currency_selection")
                 },
                 onAccountCreated = { updatedAccountId ->
                     android.util.Log.d("Navigation", "Account $accountId updated with ID: $updatedAccountId")

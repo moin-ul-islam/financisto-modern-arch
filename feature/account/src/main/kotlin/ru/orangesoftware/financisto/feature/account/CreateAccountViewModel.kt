@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import ru.orangesoftware.financisto.usecase.modern.CreateAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetCurrenciesUseCase
 import ru.orangesoftware.financisto.data.model.AccountEntity
 import javax.inject.Inject
 
@@ -30,7 +30,8 @@ class CreateAccountViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val createAccountUseCase: CreateAccountUseCase,
     private val getAccountByIdUseCase: GetAccountByIdUseCase,
-    private val updateAccountUseCase: UpdateAccountUseCase
+    private val updateAccountUseCase: UpdateAccountUseCase,
+    private val getCurrenciesUseCase: GetCurrenciesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAccountUiState())
@@ -60,6 +61,7 @@ class CreateAccountViewModel @Inject constructor(
             is CreateAccountAction.SetClosingDay -> setClosingDay(action.closingDay)
             is CreateAccountAction.SetPaymentDay -> setPaymentDay(action.paymentDay)
             is CreateAccountAction.SetCurrency -> setCurrency(action.currency)
+            is CreateAccountAction.SetCurrencyById -> setCurrencyById(action.currencyId)
             is CreateAccountAction.SetLimitAmount -> setLimitAmount(action.amount)
             is CreateAccountAction.SetOpeningAmount -> setOpeningAmount(action.amount)
             is CreateAccountAction.SetNote -> setNote(action.note)
@@ -68,6 +70,7 @@ class CreateAccountViewModel @Inject constructor(
             is CreateAccountAction.SaveAccount -> saveAccount()
             is CreateAccountAction.DismissSaveError -> dismissSaveError()
             is CreateAccountAction.NavigateToAddCurrency -> {} // Navigation handled by UI
+            is CreateAccountAction.RefreshCurrencies -> refreshCurrencies()
         }
     }
 
@@ -76,10 +79,16 @@ class CreateAccountViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(screenState = CreateAccountScreenState.Loading)
             
             try {
-                // TODO: Replace with actual use case calls when available
-                delay(500) // Simulate loading
+                // Fetch currencies from database
+                val currencies = getCurrenciesUseCase.execute()
+                val currencyOptions = currencies.map { currency ->
+                    CurrencyOption(
+                        id = currency.id,
+                        name = currency.name,
+                        symbol = currency.symbol
+                    )
+                }
                 
-                val currencyOptions = getMockCurrencies()
                 val accountTypes = getAvailableAccountTypes()
                 val cardIssuers = getAvailableCardIssuers()
                 val electronicPaymentTypes = getAvailableElectronicPaymentTypes()
@@ -106,6 +115,37 @@ class CreateAccountViewModel @Inject constructor(
                         canRetry = true
                     )
                 )
+            }
+        }
+    }
+    
+    private fun refreshCurrencies() {
+        viewModelScope.launch {
+            try {
+                // Fetch updated currencies from database
+                val currencies = getCurrenciesUseCase.execute()
+                val currencyOptions = currencies.map { currency ->
+                    CurrencyOption(
+                        id = currency.id,
+                        name = currency.name,
+                        symbol = currency.symbol
+                    )
+                }
+                
+                // Update the content data with new currencies
+                val currentState = _uiState.value
+                val currentScreenState = currentState.screenState
+                if (currentScreenState is CreateAccountScreenState.Content) {
+                    val updatedContentData = currentScreenState.data.copy(
+                        availableCurrencies = currencyOptions
+                    )
+                    _uiState.value = currentState.copy(
+                        screenState = CreateAccountScreenState.Content(updatedContentData)
+                    )
+                }
+            } catch (e: Exception) {
+                // Handle error - could show a snackbar or log it
+                android.util.Log.e("CreateAccountViewModel", "Failed to refresh currencies: ${e.message}")
             }
         }
     }
@@ -171,15 +211,6 @@ class CreateAccountViewModel @Inject constructor(
         // Validate the form after populating
         validateForm()
     }
-    
-    private fun getMockCurrencies(): List<CurrencyOption> {
-        return listOf(
-            CurrencyOption(id = 1, name = "US Dollar", symbol = "$"),
-            CurrencyOption(id = 2, name = "Euro", symbol = "€"),
-            CurrencyOption(id = 3, name = "British Pound", symbol = "£"),
-            CurrencyOption(id = 4, name = "Japanese Yen", symbol = "¥")
-        )
-    }
 
     private fun setTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
@@ -234,6 +265,16 @@ class CreateAccountViewModel @Inject constructor(
     private fun setCurrency(currency: CurrencyOption) {
         _uiState.value = _uiState.value.copy(selectedCurrency = currency)
         validateForm()
+    }
+
+    private fun setCurrencyById(currencyId: Long) {
+        val currentState = _uiState.value
+        val contentData = (currentState.screenState as? CreateAccountScreenState.Content)?.data
+        val currency = contentData?.availableCurrencies?.find { it.id == currencyId }
+        if (currency != null) {
+            _uiState.value = currentState.copy(selectedCurrency = currency)
+            validateForm()
+        }
     }
 
     private fun setLimitAmount(amount: String) {

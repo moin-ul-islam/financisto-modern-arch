@@ -35,6 +35,17 @@ fun CreateAccountScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Check for refresh flag from navigation
+    val shouldRefreshCurrencies = remember { mutableStateOf(false) }
+    
+    // Refresh currencies when returning from currency creation
+    LaunchedEffect(shouldRefreshCurrencies.value) {
+        if (shouldRefreshCurrencies.value) {
+            viewModel.handleAction(CreateAccountAction.RefreshCurrencies)
+            shouldRefreshCurrencies.value = false
+        }
+    }
+
     // Handle save state changes
     LaunchedEffect(uiState.saveState) {
         when (val saveState = uiState.saveState) {
