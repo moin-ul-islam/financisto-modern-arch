@@ -3,6 +3,7 @@ package ru.orangesoftware.financisto.data.dao
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.orangesoftware.financisto.data.model.CategoryEntity
+import ru.orangesoftware.financisto.data.model.CategoryView
 
 /**
  * Room DAO for Category operations.
@@ -84,4 +85,36 @@ interface CategoryDao {
      */
     @Query("SELECT * FROM category WHERE is_active = 1 AND title LIKE '%' || :query || '%' ORDER BY title")
     suspend fun searchCategories(query: String): List<CategoryEntity>
+
+    // CategoryView queries for hierarchical operations
+
+    /**
+     * Get all categories with hierarchy level information
+     */
+    @Query("SELECT * FROM v_category ORDER BY `left`")
+    suspend fun getAllCategoriesWithLevel(): List<CategoryView>
+
+    /**
+     * Get category with hierarchy level by ID
+     */
+    @Query("SELECT * FROM v_category WHERE _id = :categoryId")
+    suspend fun getCategoryWithLevelById(categoryId: Long): CategoryView?
+
+    /**
+     * Get categories by type with hierarchy level
+     */
+    @Query("SELECT * FROM v_category WHERE type = :type ORDER BY `left`")
+    suspend fun getCategoriesWithLevelByType(type: Int): List<CategoryView>
+
+    /**
+     * Get expense categories with hierarchy level
+     */
+    @Query("SELECT * FROM v_category WHERE type = 0 ORDER BY `left`")
+    suspend fun getExpenseCategoriesWithLevel(): List<CategoryView>
+
+    /**
+     * Get income categories with hierarchy level
+     */
+    @Query("SELECT * FROM v_category WHERE type = 1 ORDER BY `left`")
+    suspend fun getIncomeCategoriesWithLevel(): List<CategoryView>
 }

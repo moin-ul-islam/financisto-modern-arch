@@ -3,6 +3,7 @@ package ru.orangesoftware.financisto.data.dao
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.orangesoftware.financisto.data.model.AttributeEntity
+import ru.orangesoftware.financisto.data.model.AttributeView
 
 /**
  * Room DAO for Attribute operations.
@@ -69,4 +70,24 @@ interface AttributeDao {
      */
     @Query("SELECT * FROM attributes WHERE is_active = 1 AND title LIKE '%' || :query || '%' ORDER BY title")
     suspend fun searchAttributes(query: String): List<AttributeEntity>
+
+    // AttributeView queries for category-linked attributes
+
+    /**
+     * Get all attributes with their associated category information
+     */
+    @Query("SELECT * FROM v_attributes ORDER BY category_id, title")
+    suspend fun getAllAttributesWithCategories(): List<AttributeView>
+
+    /**
+     * Get attributes for a specific category
+     */
+    @Query("SELECT * FROM v_attributes WHERE category_id = :categoryId ORDER BY title")
+    suspend fun getAttributesForCategory(categoryId: Long): List<AttributeView>
+
+    /**
+     * Get attributes for categories within a hierarchy range (using nested set model)
+     */
+    @Query("SELECT * FROM v_attributes WHERE category_left >= :left AND category_right <= :right ORDER BY category_id, title")
+    suspend fun getAttributesForCategoryHierarchy(left: Int, right: Int): List<AttributeView>
 }
