@@ -35,13 +35,6 @@ fun CreatePayeeScreen(
         viewModel.onPayeeCreated = onPayeeCreated
     }
 
-    // Handle success
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            onPayeeCreated(0) // The actual ID will be passed through the callback
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(

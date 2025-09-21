@@ -35,13 +35,6 @@ fun CreateProjectScreen(
         viewModel.onProjectCreated = onProjectCreated
     }
 
-    // Handle success
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            onProjectCreated(0) // The actual ID will be passed through the callback
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(

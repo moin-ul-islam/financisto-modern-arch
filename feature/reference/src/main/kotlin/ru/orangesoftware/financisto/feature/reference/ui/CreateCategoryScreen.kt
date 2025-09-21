@@ -35,13 +35,6 @@ fun CreateCategoryScreen(
         viewModel.onCategoryCreated = onCategoryCreated
     }
 
-    // Handle success
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            onCategoryCreated(0) // The actual ID will be passed through the callback
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
