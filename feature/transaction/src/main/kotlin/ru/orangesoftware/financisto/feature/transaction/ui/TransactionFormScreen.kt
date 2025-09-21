@@ -22,6 +22,9 @@ import androidx.compose.runtime.collectAsState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormUiState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormViewModel
 import ru.orangesoftware.financisto.feature.transaction.ui.components.*
+import androidx.navigation.NavBackStackEntry
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,8 +50,12 @@ import java.util.*
 fun TransactionFormScreen(
     onNavigateBack: () -> Unit,
     onTransactionSaved: (Long) -> Unit,
+    onNavigateToCreateCategory: () -> Unit = {},
+    onNavigateToCreatePayee: () -> Unit = {},
+    onNavigateToCreateProject: () -> Unit = {},
     modifier: Modifier = Modifier,
-    viewModel: TransactionFormViewModel = hiltViewModel()
+    viewModel: TransactionFormViewModel = hiltViewModel(),
+    navBackStackEntry: NavBackStackEntry? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -61,6 +68,40 @@ fun TransactionFormScreen(
             }
             else -> {}
         }
+    }
+    
+    // Handle refresh after creating entities
+    LaunchedEffect(navBackStackEntry) {
+        navBackStackEntry?.let { backStackEntry ->
+            val refreshEntityType = backStackEntry.savedStateHandle.get<String>("refresh_entity_type")
+            val refreshEntityId = backStackEntry.savedStateHandle.get<Long>("refresh_entity_id")
+            
+            if (refreshEntityType != null) {
+                val entityType = when (refreshEntityType) {
+                    "CATEGORY" -> TransactionFormViewModel.CreatedEntityType.CATEGORY
+                    "PAYEE" -> TransactionFormViewModel.CreatedEntityType.PAYEE
+                    "PROJECT" -> TransactionFormViewModel.CreatedEntityType.PROJECT
+                    else -> null
+                }
+                
+                entityType?.let {
+                    viewModel.refreshDataAfterCreation(it, refreshEntityId)
+                }
+                
+                // Clear the flags
+                backStackEntry.savedStateHandle.set("refresh_entity_type", null)
+                backStackEntry.savedStateHandle.set("refresh_entity_id", null)
+            }
+        }
+    }
+    
+    // Set navigation callbacks on ViewModel
+    LaunchedEffect(viewModel, onNavigateToCreateCategory, onNavigateToCreatePayee, onNavigateToCreateProject) {
+        android.util.Log.d("TransactionFormScreen", "Setting navigation callbacks on ViewModel")
+        viewModel.onNavigateToCreateCategory = onNavigateToCreateCategory
+        viewModel.onNavigateToCreatePayee = onNavigateToCreatePayee
+        viewModel.onNavigateToCreateProject = onNavigateToCreateProject
+        android.util.Log.d("TransactionFormScreen", "Navigation callbacks set: category=${onNavigateToCreateCategory != null}, payee=${onNavigateToCreatePayee != null}, project=${onNavigateToCreateProject != null}")
     }
     
     Column(
@@ -194,6 +235,9 @@ private fun TransactionFormContent(
                 availableCategories = uiState.availableCategories,
                 onCategorySelected = { category ->
                     onAction(TransactionFormAction.SelectCategory(category))
+                },
+                onAddNewCategory = {
+                    onAction(TransactionFormAction.AddNewCategory)
                 }
             )
         }
@@ -205,6 +249,9 @@ private fun TransactionFormContent(
                 availablePayees = uiState.availablePayees,
                 onPayeeSelected = { payee ->
                     onAction(TransactionFormAction.SelectPayee(payee))
+                },
+                onAddNewPayee = {
+                    onAction(TransactionFormAction.AddNewPayee)
                 }
             )
         }
@@ -216,17 +263,9 @@ private fun TransactionFormContent(
                 availableProjects = uiState.availableProjects,
                 onProjectSelected = { project ->
                     onAction(TransactionFormAction.SelectProject(project))
-                }
-            )
-        }
-        
-        // Location Selection
-        if (uiState.isShowLocation) {
-            LocationSelectionField(
-                selectedLocation = uiState.selectedLocation,
-                availableLocations = uiState.availableLocations,
-                onLocationSelected = { location ->
-                    onAction(TransactionFormAction.SelectLocation(location))
+                },
+                onAddNewProject = {
+                    onAction(TransactionFormAction.AddNewProject)
                 }
             )
         }
@@ -278,7 +317,9 @@ sealed class TransactionFormAction {
     data class SelectCategory(val category: ru.orangesoftware.financisto.feature.transaction.CategoryOption) : TransactionFormAction()
     data class SelectPayee(val payee: ru.orangesoftware.financisto.feature.transaction.PayeeOption) : TransactionFormAction()
     data class SelectProject(val project: ru.orangesoftware.financisto.feature.transaction.ProjectOption) : TransactionFormAction()
-    data class SelectLocation(val location: ru.orangesoftware.financisto.feature.transaction.LocationOption) : TransactionFormAction()
+    object AddNewCategory : TransactionFormAction()
+    object AddNewPayee : TransactionFormAction()
+    object AddNewProject : TransactionFormAction()
     data class UpdateNote(val note: String) : TransactionFormAction()
     object AddSplit : TransactionFormAction()
     data class EditSplit(val split: ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem) : TransactionFormAction()

@@ -41,8 +41,6 @@ data class TransactionFormUiState(
     val availablePayees: List<PayeeOption> = emptyList(),
     val selectedProject: ProjectOption? = null,
     val availableProjects: List<ProjectOption> = emptyList(),
-    val selectedLocation: LocationOption? = null,
-    val availableLocations: List<LocationOption> = emptyList(),
     val note: String = "",
     val dateTime: Long = System.currentTimeMillis(),
     val formattedDateTime: String = "",
@@ -53,7 +51,6 @@ data class TransactionFormUiState(
     val isTransferEnabled: Boolean = true,
     val isShowPayee: Boolean = true,
     val isShowProject: Boolean = true,
-    val isShowLocation: Boolean = true,
     
     // Transfer specific
     val isTransfer: Boolean = false,
@@ -119,13 +116,6 @@ data class ProjectOption(
     val isActive: Boolean = true
 )
 
-data class LocationOption(
-    val id: Long,
-    val name: String,
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0
-)
-
 /**
  * Split transaction item for complex transactions
  */
@@ -169,7 +159,6 @@ sealed class TransactionFormAction {
     data class SetCategory(val category: CategoryOption) : TransactionFormAction()
     data class SetPayee(val payee: PayeeOption?) : TransactionFormAction()
     data class SetProject(val project: ProjectOption?) : TransactionFormAction()
-    data class SetLocation(val location: LocationOption?) : TransactionFormAction()
     data class SetNote(val note: String) : TransactionFormAction()
     data class SetDateTime(val dateTime: Long) : TransactionFormAction()
     data class SetExchangeRate(val rate: String) : TransactionFormAction()

@@ -18,6 +18,7 @@ fun CategorySelectionField(
     selectedCategory: ru.orangesoftware.financisto.feature.transaction.CategoryOption?,
     availableCategories: List<ru.orangesoftware.financisto.feature.transaction.CategoryOption>,
     onCategorySelected: (ru.orangesoftware.financisto.feature.transaction.CategoryOption) -> Unit,
+    onAddNewCategory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -72,6 +73,28 @@ fun CategorySelectionField(
                     }
                 )
             }
+            
+            // Add New Category option
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Add New Category",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                onClick = {
+                    onAddNewCategory()
+                    expanded = false
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
         }
     }
 }
@@ -85,6 +108,7 @@ fun PayeeSelectionField(
     selectedPayee: ru.orangesoftware.financisto.feature.transaction.PayeeOption?,
     availablePayees: List<ru.orangesoftware.financisto.feature.transaction.PayeeOption>,
     onPayeeSelected: (ru.orangesoftware.financisto.feature.transaction.PayeeOption) -> Unit,
+    onAddNewPayee: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -139,6 +163,28 @@ fun PayeeSelectionField(
                     }
                 )
             }
+            
+            // Add New Payee option
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Add New Payee",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                onClick = {
+                    onAddNewPayee()
+                    expanded = false
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
         }
     }
 }
@@ -152,6 +198,7 @@ fun ProjectSelectionField(
     selectedProject: ru.orangesoftware.financisto.feature.transaction.ProjectOption?,
     availableProjects: List<ru.orangesoftware.financisto.feature.transaction.ProjectOption>,
     onProjectSelected: (ru.orangesoftware.financisto.feature.transaction.ProjectOption) -> Unit,
+    onAddNewProject: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -206,73 +253,28 @@ fun ProjectSelectionField(
                     }
                 )
             }
-        }
-    }
-}
-
-/**
- * Location selection field
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LocationSelectionField(
-    selectedLocation: ru.orangesoftware.financisto.feature.transaction.LocationOption?,
-    availableLocations: List<ru.orangesoftware.financisto.feature.transaction.LocationOption>,
-    onLocationSelected: (ru.orangesoftware.financisto.feature.transaction.LocationOption) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedLocation?.name ?: "",
-            onValueChange = { },
-            readOnly = true,
-            label = { Text("Location") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = null
-                )
-            }
-        )
-        
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            for (location in availableLocations) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = location.name,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
-                    onClick = {
-                        onLocationSelected(location)
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                )
-            }
+            
+            // Add New Project option
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Add New Project",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                onClick = {
+                    onAddNewProject()
+                    expanded = false
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
         }
     }
 }

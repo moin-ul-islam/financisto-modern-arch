@@ -63,6 +63,7 @@ dependencies {
     implementation project(':feature:blotter')
     implementation project(':feature:account')
     implementation project(':feature:transaction')
+    implementation project(':feature:reference')
 
     // Modern Android dependencies
     implementation libs.androidx.core.ktx

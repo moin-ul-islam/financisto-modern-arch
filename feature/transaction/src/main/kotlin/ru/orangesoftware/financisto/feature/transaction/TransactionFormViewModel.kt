@@ -43,6 +43,8 @@ class TransactionFormViewModel @Inject constructor(
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val getAccountsUseCase: GetAccountsUseCase,
     private val getCategoryTreeUseCase: GetCategoryTreeUseCase,
+    private val getPayeesUseCase: ru.orangesoftware.financisto.usecase.modern.GetPayeesUseCase,
+    private val getProjectsUseCase: ru.orangesoftware.financisto.usecase.modern.GetProjectsUseCase,
     private val getCurrencyByIdUseCase: GetCurrencyByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -52,6 +54,91 @@ class TransactionFormViewModel @Inject constructor(
 
     // Cache for currencies to avoid repeated database calls
     private val currencyCache = mutableMapOf<Long, Currency>()
+
+    // Navigation callbacks
+    var onNavigateToCreateCategory: (() -> Unit)? = null
+    var onNavigateToCreatePayee: (() -> Unit)? = null
+    var onNavigateToCreateProject: (() -> Unit)? = null
+
+    /**
+     * Refreshes the available options (categories, payees, projects) after creating new entities.
+     * Optionally selects the newly created entity if provided.
+     */
+    fun refreshDataAfterCreation(createdEntityType: CreatedEntityType, createdEntityId: Long? = null) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                when (createdEntityType) {
+                    CreatedEntityType.CATEGORY -> {
+                        val categoriesResult = getCategoryTreeUseCase.execute()
+                        if (categoriesResult.isSuccess) {
+                            val categoryOptions = categoriesResult.getOrThrow().map { category ->
+                                CategoryOption(
+                                    id = category.id,
+                                    title = category.title,
+                                    iconResId = 0, // TODO: Map category to icon
+                                    type = getCategoryTypeString(category.type)
+                                )
+                            }
+                            _uiState.value = _uiState.value.copy(availableCategories = categoryOptions)
+                            
+                            // Select the newly created category if ID provided
+                            createdEntityId?.let { id ->
+                                val newCategory = categoryOptions.find { it.id == id }
+                                newCategory?.let { selectCategory(it) }
+                            }
+                        }
+                    }
+                    CreatedEntityType.PAYEE -> {
+                        val payeesResult = getPayeesUseCase.execute()
+                        if (payeesResult.isSuccess) {
+                            val payeeOptions = payeesResult.getOrThrow().map { payee ->
+                                PayeeOption(
+                                    id = payee.id,
+                                    name = payee.title
+                                )
+                            }
+                            _uiState.value = _uiState.value.copy(availablePayees = payeeOptions)
+                            
+                            // Select the newly created payee if ID provided
+                            createdEntityId?.let { id ->
+                                val newPayee = payeeOptions.find { it.id == id }
+                                newPayee?.let { selectPayee(it) }
+                            }
+                        }
+                    }
+                    CreatedEntityType.PROJECT -> {
+                        val projectsResult = getProjectsUseCase.execute()
+                        if (projectsResult.isSuccess) {
+                            val projectOptions = projectsResult.getOrThrow().map { project ->
+                                ProjectOption(
+                                    id = project.id,
+                                    name = project.title,
+                                    isActive = project.isActive
+                                )
+                            }
+                            _uiState.value = _uiState.value.copy(availableProjects = projectOptions)
+                            
+                            // Select the newly created project if ID provided
+                            createdEntityId?.let { id ->
+                                val newProject = projectOptions.find { it.id == id }
+                                newProject?.let { selectProject(it) }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Log error but don't show to user as this is a background refresh
+                // The data will still be available from the previous load
+            }
+        }
+    }
+
+    /**
+     * Enum to identify which type of entity was created
+     */
+    enum class CreatedEntityType {
+        CATEGORY, PAYEE, PROJECT
+    }
 
     init {
         // Load initial data and check if we're in edit mode
@@ -68,24 +155,64 @@ class TransactionFormViewModel @Inject constructor(
      */
     fun handleAction(action: TransactionFormAction) {
         when (action) {
-            is TransactionFormAction.SelectAccount -> selectAccount(action.account)
-            is TransactionFormAction.SelectToAccount -> selectToAccount(action.account)
-            is TransactionFormAction.UpdateAmount -> updateAmount(action.amount)
-            is TransactionFormAction.SelectCategory -> selectCategory(action.category)
-            is TransactionFormAction.SelectPayee -> selectPayee(action.payee)
-            is TransactionFormAction.SelectProject -> selectProject(action.project)
-            is TransactionFormAction.SelectLocation -> selectLocation(action.location)
-            is TransactionFormAction.UpdateNote -> updateNote(action.note)
-            is TransactionFormAction.ToggleTransfer -> toggleTransfer(action.isTransfer)
-            is TransactionFormAction.UpdateExchangeRate -> updateExchangeRate(action.rate)
-            is TransactionFormAction.ToggleIncomeExpense -> toggleIncomeExpense()
+            is TransactionFormAction.SelectAccount -> {
+                selectAccount(action.account)
+                validateForm()
+            }
+            is TransactionFormAction.SelectToAccount -> {
+                selectToAccount(action.account)
+                validateForm()
+            }
+            is TransactionFormAction.UpdateAmount -> {
+                updateAmount(action.amount)
+                validateForm()
+            }
+            is TransactionFormAction.SelectCategory -> {
+                selectCategory(action.category)
+                validateForm()
+            }
+            is TransactionFormAction.SelectPayee -> {
+                selectPayee(action.payee)
+                validateForm()
+            }
+            is TransactionFormAction.SelectProject -> {
+                selectProject(action.project)
+                validateForm()
+            }
+            is TransactionFormAction.AddNewCategory -> {
+                android.util.Log.d("TransactionFormViewModel", "AddNewCategory action triggered")
+                onNavigateToCreateCategory?.invoke() ?: android.util.Log.w("TransactionFormViewModel", "onNavigateToCreateCategory is null")
+            }
+            is TransactionFormAction.AddNewPayee -> {
+                android.util.Log.d("TransactionFormViewModel", "AddNewPayee action triggered")
+                onNavigateToCreatePayee?.invoke() ?: android.util.Log.w("TransactionFormViewModel", "onNavigateToCreatePayee is null")
+            }
+            is TransactionFormAction.AddNewProject -> {
+                android.util.Log.d("TransactionFormViewModel", "AddNewProject action triggered")
+                onNavigateToCreateProject?.invoke() ?: android.util.Log.w("TransactionFormViewModel", "onNavigateToCreateProject is null")
+            }
+            is TransactionFormAction.UpdateNote -> {
+                updateNote(action.note)
+                validateForm()
+            }
+            is TransactionFormAction.ToggleTransfer -> {
+                toggleTransfer(action.isTransfer)
+                validateForm()
+            }
+            is TransactionFormAction.UpdateExchangeRate -> {
+                updateExchangeRate(action.rate)
+                validateForm()
+            }
+            is TransactionFormAction.ToggleIncomeExpense -> {
+                toggleIncomeExpense()
+                validateForm()
+            }
             is TransactionFormAction.ShowDateTimePicker -> { /* TODO: Handle date/time picker */ }
             is TransactionFormAction.ShowStatusPicker -> { /* TODO: Handle status picker */ }
             is TransactionFormAction.AddSplit -> { /* TODO: Handle add split */ }
             is TransactionFormAction.EditSplit -> { /* TODO: Handle edit split */ }
             is TransactionFormAction.DeleteSplit -> { /* TODO: Handle delete split */ }
         }
-        validateForm()
     }
 
     fun saveTransaction() {
@@ -120,9 +247,11 @@ class TransactionFormViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(screenState = TransactionFormScreenState.Loading)
             
             try {
-                // Load real accounts and categories from use cases
+                // Load real accounts, categories, payees, and projects from use cases
                 val accounts = getAccountsUseCase.execute()
                 val categoriesResult = getCategoryTreeUseCase.execute()
+                val payeesResult = getPayeesUseCase.execute()
+                val projectsResult = getProjectsUseCase.execute()
                 
                 val accountOptions = accounts.map { account ->
                     val currencySymbol = getCurrency(account.currencyId)?.symbol ?: "$"
@@ -151,12 +280,39 @@ class TransactionFormViewModel @Inject constructor(
                     emptyList()
                 }
 
+                val payeeOptions = if (payeesResult.isSuccess) {
+                    payeesResult.getOrThrow().map { payee ->
+                        PayeeOption(
+                            id = payee.id,
+                            name = payee.title
+                        )
+                    }
+                } else {
+                    // Fallback to empty list if payees fail to load
+                    emptyList()
+                }
+
+                val projectOptions = if (projectsResult.isSuccess) {
+                    projectsResult.getOrThrow().map { project ->
+                        ProjectOption(
+                            id = project.id,
+                            name = project.title,
+                            isActive = project.isActive
+                        )
+                    }
+                } else {
+                    // Fallback to empty list if projects fail to load
+                    emptyList()
+                }
+
                 val contentData = TransactionFormContentData()
 
                 _uiState.value = _uiState.value.copy(
                     screenState = TransactionFormScreenState.Content(contentData),
                     availableAccounts = accountOptions,
                     availableCategories = categoryOptions,
+                    availablePayees = payeeOptions,
+                    availableProjects = projectOptions,
                     isTemplate = isTemplate,
                     isEditMode = transactionId > 0,
                     transactionId = transactionId
@@ -205,10 +361,6 @@ class TransactionFormViewModel @Inject constructor(
 
     private fun selectProject(project: ProjectOption) {
         _uiState.value = _uiState.value.copy(selectedProject = project)
-    }
-
-    private fun selectLocation(location: LocationOption) {
-        _uiState.value = _uiState.value.copy(selectedLocation = location)
     }
 
     private fun updateNote(note: String) {

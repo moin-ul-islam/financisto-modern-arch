@@ -214,6 +214,61 @@ private fun AccountNavigationGraph(
                 onTransactionSaved = { savedTransactionId ->
                     android.util.Log.d("Navigation", "Transaction saved with ID: $savedTransactionId")
                     navController.popBackStack()
+                },
+                onNavigateToCreateCategory = {
+                    navController.navigate("create_category")
+                },
+                onNavigateToCreatePayee = {
+                    navController.navigate("create_payee")
+                },
+                onNavigateToCreateProject = {
+                    navController.navigate("create_project")
+                },
+                navBackStackEntry = backStackEntry
+            )
+        }
+
+        composable("create_category") {
+            ru.orangesoftware.financisto.feature.reference.ui.CreateCategoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCategoryCreated = { categoryId ->
+                    android.util.Log.d("Navigation", "Category created with ID: $categoryId")
+                    // Refresh categories in the transaction form
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_type", "CATEGORY")
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_id", categoryId)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("create_payee") {
+            ru.orangesoftware.financisto.feature.reference.ui.CreatePayeeScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onPayeeCreated = { payeeId ->
+                    android.util.Log.d("Navigation", "Payee created with ID: $payeeId")
+                    // Refresh payees in the transaction form
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_type", "PAYEE")
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_id", payeeId)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("create_project") {
+            ru.orangesoftware.financisto.feature.reference.ui.CreateProjectScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onProjectCreated = { projectId ->
+                    android.util.Log.d("Navigation", "Project created with ID: $projectId")
+                    // Refresh projects in the transaction form
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_type", "PROJECT")
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_id", projectId)
+                    navController.popBackStack()
                 }
             )
         }
