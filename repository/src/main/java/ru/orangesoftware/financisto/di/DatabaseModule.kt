@@ -15,6 +15,8 @@ import ru.orangesoftware.financisto.data.dao.CurrencyDao
 import ru.orangesoftware.financisto.data.dao.CategoryDao
 import ru.orangesoftware.financisto.data.dao.PayeeDao
 import ru.orangesoftware.financisto.data.dao.ProjectDao
+import ru.orangesoftware.financisto.data.dao.AttributeDao
+import ru.orangesoftware.financisto.data.dao.TransactionAttributeDao
 import javax.inject.Singleton
 
 /**
@@ -90,5 +92,21 @@ object DatabaseModule {
     @Provides
     fun provideProjectDao(database: FinancistoDatabase): ProjectDao {
         return database.projectDao()
+    }
+
+    /**
+     * Provides AttributeDao from Room database
+     */
+    @Provides
+    fun provideAttributeDao(database: FinancistoDatabase): AttributeDao {
+        return database.attributeDao()
+    }
+
+    /**
+     * Provides TransactionAttributeDao from Room database
+     */
+    @Provides
+    fun provideTransactionAttributeDao(database: FinancistoDatabase): TransactionAttributeDao {
+        return database.transactionAttributeDao()
     }
 }

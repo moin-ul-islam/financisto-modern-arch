@@ -38,7 +38,7 @@ class InsertOrUpdateTransactionUseCase @Inject constructor(
         attributes: List<TransactionAttributeEntity> = emptyList()
     ): Result<Long> = withContext(ioDispatcher) {
         try {
-            val transactionId = if (transaction.id == -1L) {
+            val transactionId = if (transaction.id == 0L) {
                 // Insert new transaction
                 transactionRepository.insertTransaction(transaction)
             } else {

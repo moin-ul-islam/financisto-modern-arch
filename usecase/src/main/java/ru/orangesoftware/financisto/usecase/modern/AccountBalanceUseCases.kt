@@ -46,6 +46,12 @@ class RecalculateAccountBalanceUseCase @Inject constructor(
             val transactions = transactionDao.getTransactionsForRunningBalance(accountId)
 
             if (transactions.isEmpty()) {
+                // Update the account's total_amount field to 0 when no transactions
+                val account = accountRepository.getAccountById(accountId)
+                if (account != null) {
+                    val updatedAccount = account.copy(totalAmount = 0L)
+                    accountRepository.updateAccount(updatedAccount)
+                }
                 return@withContext Result.success(0L)
             }
 
@@ -83,6 +89,13 @@ class RecalculateAccountBalanceUseCase @Inject constructor(
             // Insert all running balance entries in batch
             if (runningBalanceEntries.isNotEmpty()) {
                 runningBalanceDao.insertRunningBalances(runningBalanceEntries)
+            }
+
+            // Update the account's total_amount field with the final balance
+            val account = accountRepository.getAccountById(accountId)
+            if (account != null) {
+                val updatedAccount = account.copy(totalAmount = cumulativeBalance)
+                accountRepository.updateAccount(updatedAccount)
             }
 
             Result.success(cumulativeBalance)

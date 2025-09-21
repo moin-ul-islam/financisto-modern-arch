@@ -12,11 +12,12 @@ import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.data.model.AccountEntity
 import ru.orangesoftware.financisto.data.model.CategoryView
+import ru.orangesoftware.financisto.data.model.TransactionEntity
 import ru.orangesoftware.financisto.domain.model.Currency
 import ru.orangesoftware.financisto.domain.model.CurrencyId
 import ru.orangesoftware.financisto.domain.model.Money
 import ru.orangesoftware.financisto.usecase.modern.GetTransactionByIdUseCase
-import ru.orangesoftware.financisto.usecase.modern.CreateTransactionUseCase
+import ru.orangesoftware.financisto.usecase.modern.CreateTransactionWithBalanceUpdateUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateTransactionUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetCategoryTreeUseCase
@@ -39,7 +40,7 @@ import javax.inject.Inject
 class TransactionFormViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
-    private val createTransactionUseCase: CreateTransactionUseCase,
+    private val createTransactionUseCase: CreateTransactionWithBalanceUpdateUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val getAccountsUseCase: GetAccountsUseCase,
     private val getCategoryTreeUseCase: GetCategoryTreeUseCase,
@@ -225,14 +226,25 @@ class TransactionFormViewModel @Inject constructor(
             )
             
             try {
-                // TODO: Implement actual save logic
-                // For now, simulate success
-                kotlinx.coroutines.delay(1000)
+                val uiState = _uiState.value
                 
-                _uiState.value = _uiState.value.copy(
-                    isSaving = false,
-                    saveState = SaveState.Success(1L, "Transaction saved successfully")
-                )
+                // Build transaction entity from form data
+                val transaction = buildTransactionEntity(uiState)
+                
+                // Save transaction with balance update
+                val result = createTransactionUseCase.execute(transaction)
+                
+                result.onSuccess { transactionId ->
+                    _uiState.value = _uiState.value.copy(
+                        isSaving = false,
+                        saveState = SaveState.Success(transactionId, "Transaction saved successfully")
+                    )
+                }.onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isSaving = false,
+                        saveState = SaveState.Failed("Failed to save transaction: ${exception.message}")
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
@@ -240,6 +252,33 @@ class TransactionFormViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun buildTransactionEntity(uiState: TransactionFormUiState): TransactionEntity {
+        val amountInCents = (uiState.amount.toDoubleOrNull() ?: 0.0) * 100
+        
+        return TransactionEntity(
+            fromAccountId = uiState.selectedAccount?.id ?: 0,
+            toAccountId = if (uiState.isTransfer) uiState.selectedToAccount?.id ?: 0 else 0,
+            categoryId = uiState.selectedCategory?.id ?: 0,
+            projectId = uiState.selectedProject?.id ?: 0,
+            payeeId = uiState.selectedPayee?.id ?: 0,
+            fromAmount = amountInCents.toLong(),
+            toAmount = if (uiState.isTransfer) {
+                if (uiState.isDifferentCurrency) {
+                    // Convert amount using exchange rate
+                    val exchangeRate = uiState.exchangeRate.toDoubleOrNull() ?: 1.0
+                    (amountInCents * exchangeRate).toLong()
+                } else {
+                    amountInCents.toLong()
+                }
+            } else 0,
+            datetime = uiState.dateTime,
+            note = uiState.note.takeIf { it.isNotBlank() },
+            status = uiState.status,
+            isTemplate = uiState.isTemplate,
+            originalCurrencyId = uiState.selectedAccount?.currencyId ?: 0
+        )
     }
 
     private fun loadInitialData(transactionId: Long, accountId: Long, isTemplate: Boolean) {
@@ -262,7 +301,8 @@ class TransactionFormViewModel @Inject constructor(
                         title = account.title,
                         currencySymbol = currencySymbol,
                         balance = formattedBalance,
-                        iconResId = 0 // TODO: Map account type to icon
+                        iconResId = 0, // TODO: Map account type to icon
+                        currencyId = account.currencyId
                     )
                 }
                 

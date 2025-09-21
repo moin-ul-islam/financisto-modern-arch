@@ -57,6 +57,7 @@ private fun AccountNavigationGraph(
     ) {
         composable("account_list") {
             AccountListScreen(
+                backStackEntry = it,
                 onNavigateToCreateAccount = {
                     navController.navigate("create_account")
                 },
@@ -213,6 +214,8 @@ private fun AccountNavigationGraph(
                 },
                 onTransactionSaved = { savedTransactionId ->
                     android.util.Log.d("Navigation", "Transaction saved with ID: $savedTransactionId")
+                    // Refresh account list after transaction is saved
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_accounts", true)
                     navController.popBackStack()
                 },
                 onNavigateToCreateCategory = {

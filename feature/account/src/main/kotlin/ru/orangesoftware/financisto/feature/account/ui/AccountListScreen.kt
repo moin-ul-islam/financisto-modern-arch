@@ -51,6 +51,7 @@ import ru.orangesoftware.financisto.feature.account.ui.components.LoadingIndicat
 @Composable
 fun AccountListScreen(
     viewModel: AccountListViewModel = hiltViewModel(),
+    backStackEntry: androidx.navigation.NavBackStackEntry? = null,
     onNavigateToAccountDetails: (Long) -> Unit = {},
     onNavigateToCreateAccount: () -> Unit = {},
     onNavigateToAccountTotals: () -> Unit = {},
@@ -63,6 +64,20 @@ fun AccountListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     viewModel.handleAction(AccountListAction.LoadAccounts)
+    
+    // Check for refresh signal from navigation
+    val shouldRefreshAccounts = backStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("refresh_accounts")
+        ?.value == true
+    
+    // Refresh accounts when returning from transaction creation
+    androidx.compose.runtime.LaunchedEffect(shouldRefreshAccounts) {
+        if (shouldRefreshAccounts) {
+            viewModel.handleAction(AccountListAction.RefreshAccounts)
+            backStackEntry?.savedStateHandle?.set("refresh_accounts", false)
+        }
+    }
     
     // Callout state management
     var showCallout by remember { mutableStateOf(false) }

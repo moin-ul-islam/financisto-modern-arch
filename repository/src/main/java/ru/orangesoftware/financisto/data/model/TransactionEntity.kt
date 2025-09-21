@@ -21,12 +21,6 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = AccountEntity::class,
-            parentColumns = ["_id"],
-            childColumns = ["to_account_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = CurrencyEntity::class,
             parentColumns = ["_id"],
             childColumns = ["original_currency_id"],

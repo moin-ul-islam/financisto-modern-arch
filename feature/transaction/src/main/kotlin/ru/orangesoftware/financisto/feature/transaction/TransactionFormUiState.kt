@@ -95,7 +95,8 @@ data class AccountOption(
     val title: String,
     val currencySymbol: String,
     val balance: String,
-    val iconResId: Int
+    val iconResId: Int,
+    val currencyId: Long
 )
 
 data class CategoryOption(

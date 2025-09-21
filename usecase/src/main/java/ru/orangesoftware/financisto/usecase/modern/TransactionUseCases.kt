@@ -133,7 +133,6 @@ class DeleteTransactionUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-
     suspend fun execute(transactionId: Long): Result<Boolean> = withContext(ioDispatcher) {
         try {
             val success = transactionRepository.deleteTransaction(transactionId)
