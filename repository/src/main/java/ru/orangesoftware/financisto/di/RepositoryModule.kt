@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import ru.orangesoftware.financisto.repository.modern.AccountRepositoryImpl
+import ru.orangesoftware.financisto.repository.modern.CategoryRepository
+import ru.orangesoftware.financisto.repository.modern.CategoryRepositoryImpl
 import ru.orangesoftware.financisto.repository.modern.CurrencyRepository
 import ru.orangesoftware.financisto.repository.modern.CurrencyRepositoryImpl
 import ru.orangesoftware.financisto.repository.modern.TransactionRepository
@@ -30,6 +32,12 @@ abstract class RepositoryModule {
     abstract fun bindAccountRepository(
         accountRepositoryImpl: AccountRepositoryImpl
     ): AccountRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        categoryRepositoryImpl: CategoryRepositoryImpl
+    ): CategoryRepository
 
     @Binds
     @Singleton  

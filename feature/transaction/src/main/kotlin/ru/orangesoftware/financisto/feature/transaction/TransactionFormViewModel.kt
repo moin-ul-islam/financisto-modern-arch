@@ -10,10 +10,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
+import ru.orangesoftware.financisto.data.model.AccountEntity
+import ru.orangesoftware.financisto.data.model.CategoryView
+import ru.orangesoftware.financisto.domain.model.Currency
+import ru.orangesoftware.financisto.domain.model.CurrencyId
+import ru.orangesoftware.financisto.domain.model.Money
 import ru.orangesoftware.financisto.usecase.modern.GetTransactionByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.CreateTransactionUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateTransactionUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetCategoryTreeUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetCurrencyByIdUseCase
 import ru.orangesoftware.financisto.feature.transaction.ui.TransactionFormAction
 import javax.inject.Inject
 
@@ -35,11 +42,16 @@ class TransactionFormViewModel @Inject constructor(
     private val createTransactionUseCase: CreateTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val getAccountsUseCase: GetAccountsUseCase,
+    private val getCategoryTreeUseCase: GetCategoryTreeUseCase,
+    private val getCurrencyByIdUseCase: GetCurrencyByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionFormUiState())
     val uiState: StateFlow<TransactionFormUiState> = _uiState.asStateFlow()
+
+    // Cache for currencies to avoid repeated database calls
+    private val currencyCache = mutableMapOf<Long, Currency>()
 
     init {
         // Load initial data and check if we're in edit mode
@@ -108,45 +120,43 @@ class TransactionFormViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(screenState = TransactionFormScreenState.Loading)
             
             try {
-                // TODO: Load actual data from use cases
-                val mockAccounts = listOf(
-                    AccountOption(
-                        id = 1L,
-                        title = "Cash",
-                        currencySymbol = "$",
-                        balance = "1,250.00",
-                        iconResId = 0
-                    ),
-                    AccountOption(
-                        id = 2L,
-                        title = "Bank Account",
-                        currencySymbol = "$",
-                        balance = "5,430.25",
-                        iconResId = 0
-                    )
-                )
+                // Load real accounts and categories from use cases
+                val accounts = getAccountsUseCase.execute()
+                val categoriesResult = getCategoryTreeUseCase.execute()
                 
-                val mockCategories = listOf(
-                    CategoryOption(
-                        id = 1L,
-                        title = "Food & Dining",
-                        iconResId = 0,
-                        type = "EXPENSE"
-                    ),
-                    CategoryOption(
-                        id = 2L,
-                        title = "Salary",
-                        iconResId = 0,
-                        type = "INCOME"
+                val accountOptions = accounts.map { account ->
+                    val currencySymbol = getCurrency(account.currencyId)?.symbol ?: "$"
+                    val formattedBalance = formatAccountBalance(account.totalAmount, account.currencyId)
+                    
+                    AccountOption(
+                        id = account.id,
+                        title = account.title,
+                        currencySymbol = currencySymbol,
+                        balance = formattedBalance,
+                        iconResId = 0 // TODO: Map account type to icon
                     )
-                )
+                }
+                
+                val categoryOptions = if (categoriesResult.isSuccess) {
+                    categoriesResult.getOrThrow().map { category ->
+                        CategoryOption(
+                            id = category.id,
+                            title = category.title,
+                            iconResId = 0, // TODO: Map category to icon
+                            type = getCategoryTypeString(category.type)
+                        )
+                    }
+                } else {
+                    // Fallback to empty list if categories fail to load
+                    emptyList()
+                }
 
                 val contentData = TransactionFormContentData()
 
                 _uiState.value = _uiState.value.copy(
                     screenState = TransactionFormScreenState.Content(contentData),
-                    availableAccounts = mockAccounts,
-                    availableCategories = mockCategories,
+                    availableAccounts = accountOptions,
+                    availableCategories = categoryOptions,
                     isTemplate = isTemplate,
                     isEditMode = transactionId > 0,
                     transactionId = transactionId
@@ -154,7 +164,7 @@ class TransactionFormViewModel @Inject constructor(
 
                 // Pre-select account if provided
                 if (accountId > 0) {
-                    val selectedAccount = mockAccounts.find { it.id == accountId }
+                    val selectedAccount = accountOptions.find { it.id == accountId }
                     selectedAccount?.let { selectAccount(it) }
                 }
                 
@@ -266,6 +276,54 @@ class TransactionFormViewModel @Inject constructor(
             String.format("%.2f", value)
         } catch (e: NumberFormatException) {
             amount
+        }
+    }
+
+    private suspend fun getCurrency(currencyId: Long): Currency? {
+        // Check cache first
+        currencyCache[currencyId]?.let { return it }
+
+        // Load from database if not in cache
+        val currencyEntity = getCurrencyByIdUseCase.execute(currencyId)
+        if (currencyEntity != null) {
+            val currency = Currency(
+                id = ru.orangesoftware.financisto.domain.model.CurrencyId(currencyEntity.id),
+                name = currencyEntity.name,
+                title = currencyEntity.title,
+                symbol = currencyEntity.symbol,
+                isDefault = currencyEntity.isDefault,
+                decimals = currencyEntity.decimals,
+                decimalSeparator = currencyEntity.decimalSeparator,
+                groupSeparator = currencyEntity.groupSeparator,
+                symbolFormat = ru.orangesoftware.financisto.domain.model.SymbolFormat.valueOf(currencyEntity.symbolFormat),
+                isActive = true // Default to active since entity doesn't have this field
+            )
+            // Cache the currency
+            currencyCache[currencyId] = currency
+            return currency
+        }
+
+        return null
+    }
+
+    private suspend fun formatAccountBalance(amount: Long, currencyId: Long): String {
+        val currency = getCurrency(currencyId)
+        return if (currency != null) {
+            val money = Money(amount)
+            currency.formatAmount(money)
+        } else {
+            // Fallback formatting
+            "$${amount / 100}.${String.format("%02d", amount % 100)}"
+        }
+    }
+
+    private fun getCategoryTypeString(type: Int): String {
+        // Map the integer type to string representation
+        // Based on CategoryEntity: 0 = expense, 1 = income
+        return when (type) {
+            0 -> "EXPENSE"
+            1 -> "INCOME"
+            else -> "EXPENSE" // Default to expense
         }
     }
 }
