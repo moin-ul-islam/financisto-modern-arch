@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormUiState
 import ru.orangesoftware.financisto.feature.transaction.TransactionFormViewModel
 import ru.orangesoftware.financisto.feature.transaction.ui.components.*
+import ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem
 import androidx.navigation.NavBackStackEntry
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
@@ -53,12 +54,13 @@ fun TransactionFormScreen(
     onNavigateToCreateCategory: () -> Unit = {},
     onNavigateToCreatePayee: () -> Unit = {},
     onNavigateToCreateProject: () -> Unit = {},
+    onNavigateToEditSplit: (SplitTransactionItem) -> Unit = { _ -> },
+    onSplitSaved: (SplitTransactionItem) -> Unit = { _ -> },
     modifier: Modifier = Modifier,
     viewModel: TransactionFormViewModel = hiltViewModel(),
     navBackStackEntry: NavBackStackEntry? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     
     // Handle save result
     LaunchedEffect(uiState.saveState) {
@@ -92,15 +94,28 @@ fun TransactionFormScreen(
                 backStackEntry.savedStateHandle.set("refresh_entity_type", null)
                 backStackEntry.savedStateHandle.set("refresh_entity_id", null)
             }
+            
+            // Handle saved split from split edit screen
+            val savedSplit = backStackEntry.savedStateHandle.get<ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem>("saved_split")
+            savedSplit?.let {
+                viewModel.saveSplit(it)
+                // Clear the saved split
+                backStackEntry.savedStateHandle.set("saved_split", null)
+            }
         }
     }
-    
+
     // Set navigation callbacks on ViewModel
-    LaunchedEffect(viewModel, onNavigateToCreateCategory, onNavigateToCreatePayee, onNavigateToCreateProject) {
+    LaunchedEffect(viewModel, onNavigateToCreateCategory, onNavigateToCreatePayee, onNavigateToCreateProject, onNavigateToEditSplit, onSplitSaved) {
         android.util.Log.d("TransactionFormScreen", "Setting navigation callbacks on ViewModel")
         viewModel.onNavigateToCreateCategory = onNavigateToCreateCategory
         viewModel.onNavigateToCreatePayee = onNavigateToCreatePayee
         viewModel.onNavigateToCreateProject = onNavigateToCreateProject
+        viewModel.onNavigateToEditSplit = onNavigateToEditSplit
+        viewModel.onSplitSaved = { split -> 
+            viewModel.saveSplit(split)
+            onSplitSaved(split)
+        }
         android.util.Log.d("TransactionFormScreen", "Navigation callbacks set: category=${onNavigateToCreateCategory != null}, payee=${onNavigateToCreatePayee != null}, project=${onNavigateToCreateProject != null}")
     }
     
@@ -228,11 +243,11 @@ private fun TransactionFormContent(
             )
         }
         
-        // Category Selection (not for transfers)
-        if (!uiState.isTransfer) {
+        // Category Selection (not for transfers or split transactions)
+        if (!uiState.isTransfer && !uiState.isSplitTransaction) {
             CategorySelectionField(
                 selectedCategory = uiState.selectedCategory,
-                availableCategories = uiState.availableCategories,
+                availableCategories = uiState.availableCategories, // Include split category for selection
                 onCategorySelected = { category ->
                     onAction(TransactionFormAction.SelectCategory(category))
                 },
@@ -322,6 +337,6 @@ sealed class TransactionFormAction {
     object AddNewProject : TransactionFormAction()
     data class UpdateNote(val note: String) : TransactionFormAction()
     object AddSplit : TransactionFormAction()
-    data class EditSplit(val split: ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem) : TransactionFormAction()
-    data class DeleteSplit(val split: ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem) : TransactionFormAction()
+    data class EditSplit(val split: SplitTransactionItem) : TransactionFormAction()
+    data class DeleteSplit(val split: SplitTransactionItem) : TransactionFormAction()
 }

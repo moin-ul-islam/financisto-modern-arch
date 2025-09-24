@@ -1,5 +1,8 @@
 package ru.orangesoftware.financisto.feature.transaction
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
 /**
  * Enhanced UI state management for the Transaction Form screen.
  * Uses sealed classes to represent different screen states clearly.
@@ -63,6 +66,7 @@ data class TransactionFormUiState(
     val isSplitTransaction: Boolean = false,
     val splitTransactions: List<SplitTransactionItem> = emptyList(),
     val remainingAmount: String = "",
+    val editingSplit: SplitTransactionItem? = null,
     
     // Validation
     val validationErrors: List<ValidationError> = emptyList(),
@@ -103,7 +107,7 @@ data class CategoryOption(
     val id: Long,
     val title: String,
     val iconResId: Int,
-    val type: String // "INCOME", "EXPENSE", etc.
+    val type: Int = 0 // 0 = expense, 1 = income
 )
 
 data class PayeeOption(
@@ -120,6 +124,7 @@ data class ProjectOption(
 /**
  * Split transaction item for complex transactions
  */
+@Parcelize
 data class SplitTransactionItem(
     val id: Long = -1,
     val categoryId: Long = 0,
@@ -131,7 +136,7 @@ data class SplitTransactionItem(
     val note: String? = null,
     val projectId: Long? = null,
     val projectName: String? = null
-)
+) : Parcelable
 
 /**
  * Form validation errors
@@ -167,6 +172,8 @@ sealed class TransactionFormAction {
     data class AddSplitTransaction(val split: SplitTransactionItem) : TransactionFormAction()
     data class RemoveSplitTransaction(val splitId: Long) : TransactionFormAction()
     data class UpdateSplitTransaction(val split: SplitTransactionItem) : TransactionFormAction()
+    data class ShowEditSplitDialog(val split: SplitTransactionItem?) : TransactionFormAction()
+    object HideEditSplitDialog : TransactionFormAction()
     object SaveTransaction : TransactionFormAction()
     object SaveAsTemplate : TransactionFormAction()
     object ClearForm : TransactionFormAction()

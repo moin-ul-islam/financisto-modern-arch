@@ -227,6 +227,15 @@ private fun AccountNavigationGraph(
                 onNavigateToCreateProject = {
                     navController.navigate("create_project")
                 },
+                onNavigateToEditSplit = { splitItem ->
+                    // Navigate to split edit screen with split data
+                    navController.currentBackStackEntry?.savedStateHandle?.set("split_item", splitItem)
+                    navController.navigate("edit_split")
+                },
+                onSplitSaved = { splitItem ->
+                    // Handle split saved - this would be called when returning from split edit
+                    android.util.Log.d("Navigation", "Split saved: ${splitItem.categoryName} - ${splitItem.amount}")
+                },
                 navBackStackEntry = backStackEntry
             )
         }
@@ -271,6 +280,24 @@ private fun AccountNavigationGraph(
                     // Refresh projects in the transaction form
                     navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_type", "PROJECT")
                     navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_id", projectId)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("edit_split") {
+            val splitItem = navController.previousBackStackEntry?.savedStateHandle?.get<ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem>("split_item")
+                ?: ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem(id = -1L)
+            
+            ru.orangesoftware.financisto.feature.transaction.ui.SplitEditScreen(
+                splitItem = splitItem,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onSplitSaved = { savedSplit ->
+                    android.util.Log.d("Navigation", "Split saved: ${savedSplit.categoryName} - ${savedSplit.amount}")
+                    // Pass the saved split back to the transaction form
+                    navController.previousBackStackEntry?.savedStateHandle?.set("saved_split", savedSplit)
                     navController.popBackStack()
                 }
             )
