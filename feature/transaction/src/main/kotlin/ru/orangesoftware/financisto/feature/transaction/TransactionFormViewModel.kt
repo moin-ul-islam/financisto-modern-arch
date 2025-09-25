@@ -287,7 +287,7 @@ class TransactionFormViewModel @Inject constructor(
     ): Result<Long> = withContext(ioDispatcher) {
         try {
             // Save parent transaction first
-            val parentResult = insertOrUpdateTransactionUseCase.execute(parentTransaction)
+            val parentResult = createTransactionUseCase.execute(parentTransaction)
             if (parentResult.isFailure) {
                 return@withContext parentResult
             }
@@ -295,7 +295,7 @@ class TransactionFormViewModel @Inject constructor(
             val parentId = parentResult.getOrThrow()
             
             // Update split transactions with parent ID and save them
-            val splitsWithParentId = splitTransactions.map { it.copy(parentId = parentId) }
+            val splitsWithParentId = splitTransactions.map { it.copy(parentId = parentId, originalCurrencyId = parentTransaction.originalCurrencyId) }
             
             for (split in splitsWithParentId) {
                 val splitResult = insertOrUpdateTransactionUseCase.execute(split)
@@ -320,7 +320,7 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     private fun buildTransactionEntity(uiState: TransactionFormUiState): Pair<TransactionEntity, List<TransactionEntity>> {
-        val amountInCents = (uiState.amount.toDoubleOrNull() ?: 0.0) * 100
+        val amountInCents = (uiState.amount.toDoubleOrNull() ?: 0.0) * if (uiState.isIncome) 100 else -100
         
         val parentTransaction = TransactionEntity(
             fromAccountId = uiState.selectedAccount?.id ?: 0,

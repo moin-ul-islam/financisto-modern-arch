@@ -39,6 +39,7 @@ fun SplitEditScreen(
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var selectedProject by remember { mutableStateOf<ru.orangesoftware.financisto.feature.transaction.ProjectOption?>(null) }
+    var isIncome by remember { mutableStateOf(false) }
 
     // Initialize with existing split data if editing
     LaunchedEffect(splitItem) {
@@ -48,6 +49,7 @@ fun SplitEditScreen(
             amount = String.format("%.2f", splitItem.amount / 100.0)
             note = splitItem.note ?: ""
             selectedProject = uiState.availableProjects.find { it.id == splitItem.projectId }
+            isIncome = splitItem.type == 1
         }
     }
 
@@ -63,7 +65,7 @@ fun SplitEditScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            val amountInCents = (amount.toDoubleOrNull() ?: 0.0) * 100
+                            val amountInCents = Math.round((amount.toDoubleOrNull() ?: 0.0) * 100)
                             val splitId = if (splitItem.id == -1L) -System.currentTimeMillis() else splitItem.id
                             
                             val updatedSplit = splitItem.copy(
@@ -74,7 +76,8 @@ fun SplitEditScreen(
                                 formattedAmount = amount,
                                 note = note.takeIf { it.isNotBlank() },
                                 projectId = selectedProject?.id,
-                                projectName = selectedProject?.name
+                                projectName = selectedProject?.name,
+                                type = if (isIncome) 1 else 0
                             )
                             onSplitSaved(updatedSplit)
                         },
@@ -106,15 +109,28 @@ fun SplitEditScreen(
                 }
             )
 
-            // Amount Input
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { amount = it },
-                label = { Text("Amount") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            // Amount Input with Income/Expense Toggle
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                prefix = { Text(uiState.selectedAccount?.currencySymbol ?: "") }
-            )
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Income/Expense Toggle
+                IncomeExpenseToggle(
+                    isIncome = isIncome,
+                    onToggle = { isIncome = !isIncome }
+                )
+                
+                // Amount Input
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Amount") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f),
+                    prefix = { Text(uiState.selectedAccount?.currencySymbol ?: "") }
+                )
+            }
 
             // Note Input
             OutlinedTextField(

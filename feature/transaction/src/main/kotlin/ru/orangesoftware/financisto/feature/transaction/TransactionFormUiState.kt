@@ -135,7 +135,8 @@ data class SplitTransactionItem(
     val formattedAmount: String = "",
     val note: String? = null,
     val projectId: Long? = null,
-    val projectName: String? = null
+    val projectName: String? = null,
+    val type: Int = 0 // 0 = expense, 1 = income
 ) : Parcelable
 
 /**

@@ -86,7 +86,7 @@ fun AmountInputField(
 }
 
 @Composable
-private fun IncomeExpenseToggle(
+fun IncomeExpenseToggle(
     isIncome: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
