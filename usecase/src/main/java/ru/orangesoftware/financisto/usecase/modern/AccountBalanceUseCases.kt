@@ -72,6 +72,11 @@ class RecalculateAccountBalanceUseCase @Inject constructor(
                     continue
                 }
 
+                // Skip split transactions
+                if (transaction.parentId > 0L) {
+                    continue
+                }
+
                 // Add to cumulative balance
                 cumulativeBalance += transactionAmount
 

@@ -77,7 +77,7 @@ fun SplitEditScreen(
                                 note = note.takeIf { it.isNotBlank() },
                                 projectId = selectedProject?.id,
                                 projectName = selectedProject?.name,
-                                type = if (isIncome) 1 else 0
+                                type = if (isIncome) 1 else -1
                             )
                             onSplitSaved(updatedSplit)
                         },

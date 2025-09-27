@@ -352,7 +352,7 @@ class TransactionFormViewModel @Inject constructor(
                     toAccountId = if (uiState.isTransfer) uiState.selectedToAccount?.id ?: 0 else 0,
                     categoryId = split.categoryId,
                     projectId = split.projectId ?: 0,
-                    fromAmount = split.amount,
+                    fromAmount = split.amount * split.type,
                     toAmount = if (uiState.isTransfer) {
                         // For splits in transfers, we need to calculate proportionally
                         // For now, assume same proportion as main transaction
@@ -361,7 +361,7 @@ class TransactionFormViewModel @Inject constructor(
                             (split.amount * exchangeRate / 100.0).toLong() * 100
                         } else {
                             split.amount
-                        }
+                        } * split.amount * -1
                     } else 0,
                     datetime = uiState.dateTime,
                     note = split.note,
