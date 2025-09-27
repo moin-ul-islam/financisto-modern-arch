@@ -5,6 +5,48 @@ import kotlinx.coroutines.flow.Flow
 import ru.orangesoftware.financisto.data.model.TransactionEntity
 
 /**
+ * Data class for transaction with its splits
+ */
+data class TransactionWithSplits(
+    @Embedded val transaction: TransactionEntity,
+    @Relation(
+        parentColumn = "_id",
+        entityColumn = "parent_id"
+    )
+    val splits: List<TransactionEntity>
+) {
+    /**
+     * Check if this is a split transaction (has splits)
+     */
+    val isSplitTransaction: Boolean
+        get() = splits.isNotEmpty()
+    
+    /**
+     * Get total amount of all splits
+     */
+    val totalSplitAmount: Long
+        get() = splits.sumOf { it.fromAmount }
+    
+    /**
+     * Get unsplit amount (remaining amount not allocated to splits)
+     */
+    val unsplitAmount: Long
+        get() = transaction.fromAmount - totalSplitAmount
+    
+    /**
+     * Check if split transaction is balanced (all amount is allocated)
+     */
+    val isBalanced: Boolean
+        get() = unsplitAmount == 0L
+    
+    /**
+     * Get number of splits
+     */
+    val splitCount: Int
+        get() = splits.size
+}
+
+/**
  * Room DAO for Transaction operations.
  * 
  * Provides comprehensive transaction data access with support for
@@ -159,4 +201,81 @@ interface TransactionDao {
         ORDER BY datetime ASC, _id ASC
     """)
     suspend fun getTransactionsForRunningBalance(accountId: Long): List<TransactionEntity>
+    
+    // ========== Split Transaction Methods ==========
+    
+    /**
+     * Get split transactions for a parent transaction
+     */
+    @Query("SELECT * FROM transactions WHERE parent_id = :parentId ORDER BY _id ASC")
+    suspend fun getSplitTransactions(parentId: Long): List<TransactionEntity>
+    
+    /**
+     * Get split transactions as Flow for reactive updates
+     */
+    @Query("SELECT * FROM transactions WHERE parent_id = :parentId ORDER BY _id ASC")
+    fun getSplitTransactionsFlow(parentId: Long): Flow<List<TransactionEntity>>
+    
+    /**
+     * Get transaction with its splits (if any)
+     */
+    @Transaction
+    @Query("SELECT * FROM transactions WHERE _id = :transactionId")
+    suspend fun getTransactionWithSplits(transactionId: Long): TransactionWithSplits?
+    
+    /**
+     * Check if transaction has splits
+     */
+    @Query("SELECT COUNT(*) FROM transactions WHERE parent_id = :transactionId")
+    suspend fun getSplitCount(transactionId: Long): Int
+    
+    /**
+     * Delete all splits for a parent transaction
+     */
+    @Query("DELETE FROM transactions WHERE parent_id = :parentId")
+    suspend fun deleteSplitTransactions(parentId: Long)
+    
+    /**
+     * Get blotter transactions (excludes split children, includes split parents)
+     * Split parents have category_id = -1
+     */
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE is_template = 0 AND parent_id = 0 
+        ORDER BY datetime DESC
+    """)
+    suspend fun getBlotterTransactions(): List<TransactionEntity>
+    
+    /**
+     * Get blotter transactions as Flow
+     */
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE is_template = 0 AND parent_id = 0 
+        ORDER BY datetime DESC
+    """)
+    fun getBlotterTransactionsFlow(): Flow<List<TransactionEntity>>
+    
+    /**
+     * Check if a transaction is a split parent (has splits)
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM transactions WHERE parent_id = :transactionId)")
+    suspend fun isSplitParent(transactionId: Long): Boolean
+    
+    /**
+     * Check if a transaction is a split child (has parent)
+     */
+    @Query("SELECT parent_id > 0 FROM transactions WHERE _id = :transactionId")
+    suspend fun isSplitChild(transactionId: Long): Boolean
+    
+    /**
+     * Get all split parent transactions (transactions with splits)
+     */
+    @Query("""
+        SELECT DISTINCT p.* FROM transactions p 
+        WHERE EXISTS (SELECT 1 FROM transactions s WHERE s.parent_id = p._id)
+        AND p.is_template = 0
+        ORDER BY p.datetime DESC
+    """)
+    suspend fun getAllSplitParents(): List<TransactionEntity>
 }

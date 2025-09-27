@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.dao.TransactionDao
+import ru.orangesoftware.financisto.data.dao.TransactionWithSplits
 import ru.orangesoftware.financisto.data.model.TransactionEntity
 import ru.orangesoftware.financisto.di.IoDispatcher
 import javax.inject.Inject
@@ -30,6 +31,19 @@ interface TransactionRepository {
     suspend fun getTransactionTemplates(): List<TransactionEntity>
     suspend fun getTotalAmountForAccount(accountId: Long, startDate: Long, endDate: Long): Long
     suspend fun getTransactionCountForAccount(accountId: Long): Int
+    
+    // ========== Split Transaction Methods ==========
+    suspend fun getSplitTransactions(parentId: Long): List<TransactionEntity>
+    fun getSplitTransactionsFlow(parentId: Long): Flow<List<TransactionEntity>>
+    suspend fun getTransactionWithSplits(transactionId: Long): TransactionWithSplits?
+    suspend fun getSplitCount(transactionId: Long): Int
+    suspend fun isSplitTransaction(transactionId: Long): Boolean
+    suspend fun isSplitParent(transactionId: Long): Boolean
+    suspend fun isSplitChild(transactionId: Long): Boolean
+    suspend fun deleteSplitTransactions(parentId: Long): Boolean
+    suspend fun getBlotterTransactions(): List<TransactionEntity>
+    fun getBlotterTransactionsFlow(): Flow<List<TransactionEntity>>
+    suspend fun getAllSplitParents(): List<TransactionEntity>
 }
 
 /**
@@ -117,5 +131,56 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override suspend fun getTransactionCountForAccount(accountId: Long): Int = withContext(ioDispatcher) {
         transactionDao.getTransactionCountForAccount(accountId)
+    }
+    
+    // ========== Split Transaction Methods Implementation ==========
+    
+    override suspend fun getSplitTransactions(parentId: Long): List<TransactionEntity> = 
+        withContext(ioDispatcher) {
+            transactionDao.getSplitTransactions(parentId)
+        }
+    
+    override fun getSplitTransactionsFlow(parentId: Long): Flow<List<TransactionEntity>> = 
+        transactionDao.getSplitTransactionsFlow(parentId).flowOn(ioDispatcher)
+    
+    override suspend fun getTransactionWithSplits(transactionId: Long): TransactionWithSplits? = 
+        withContext(ioDispatcher) {
+            transactionDao.getTransactionWithSplits(transactionId)
+        }
+    
+    override suspend fun getSplitCount(transactionId: Long): Int = withContext(ioDispatcher) {
+        transactionDao.getSplitCount(transactionId)
+    }
+    
+    override suspend fun isSplitTransaction(transactionId: Long): Boolean = withContext(ioDispatcher) {
+        transactionDao.getSplitCount(transactionId) > 0
+    }
+    
+    override suspend fun isSplitParent(transactionId: Long): Boolean = withContext(ioDispatcher) {
+        transactionDao.isSplitParent(transactionId)
+    }
+    
+    override suspend fun isSplitChild(transactionId: Long): Boolean = withContext(ioDispatcher) {
+        transactionDao.isSplitChild(transactionId)
+    }
+    
+    override suspend fun deleteSplitTransactions(parentId: Long): Boolean = withContext(ioDispatcher) {
+        try {
+            transactionDao.deleteSplitTransactions(parentId)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    override suspend fun getBlotterTransactions(): List<TransactionEntity> = withContext(ioDispatcher) {
+        transactionDao.getBlotterTransactions()
+    }
+    
+    override fun getBlotterTransactionsFlow(): Flow<List<TransactionEntity>> = 
+        transactionDao.getBlotterTransactionsFlow().flowOn(ioDispatcher)
+    
+    override suspend fun getAllSplitParents(): List<TransactionEntity> = withContext(ioDispatcher) {
+        transactionDao.getAllSplitParents()
     }
 }
