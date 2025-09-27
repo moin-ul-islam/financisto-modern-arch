@@ -61,6 +61,9 @@ glide = "4.16.0"
 # Testing
 junit = "4.13.2"
 robolectric = "4.11.1"
+mockk = "1.13.8"
+strikt = "0.34.1"
+coroutinesTest = "1.7.3"
 
 # Kotlin
 kotlinStdlib = "1.8.22"
@@ -110,6 +113,9 @@ glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "gl
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+strikt-core = { group = "io.strikt", name = "strikt-core", version.ref = "strikt" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 # Kotlin
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
@@ -156,6 +162,7 @@ kotlin = ["kotlin-stdlib", "kotlin-coroutines-core", "kotlin-coroutines-android"
 play-services = ["play-services-base", "play-services-drive", "play-services-plus"]
 rxjava-bundle = ["rxjava", "rxandroid", "reactive-streams"]
 testing = ["junit", "androidx-test-core", "robolectric"]
+testing-modern = ["junit", "mockk", "strikt-core", "kotlinx-coroutines-test"]
 
 # Modern Architecture Component Bundles
 lifecycle = ["androidx-lifecycle-viewmodel-ktx", "androidx-lifecycle-livedata-ktx", "androidx-lifecycle-runtime-ktx", "androidx-lifecycle-viewmodel-savedstate"]
