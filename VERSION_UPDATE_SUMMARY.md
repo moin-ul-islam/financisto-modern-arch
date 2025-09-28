@@ -57,7 +57,7 @@ This document summarizes the version updates made to modernize the Financisto ap
 - `gradle/wrapper/gradle-wrapper.properties` - Updated Gradle wrapper
 
 ### Module Build Files (Java 11 compatibility)
-- `app/build.gradle`
+- `legacy-legacy-app/build.gradle`
 - `core/common/build.gradle`
 - `core/ui/build.gradle`
 - `repository/build.gradle`
@@ -68,7 +68,7 @@ This document summarizes the version updates made to modernize the Financisto ap
 - `app-playground/build.gradle`
 
 ### Repository Configuration
-- Removed deprecated `jcenter()` repository from `app/build.gradle`
+- Removed deprecated `jcenter()` repository from `legacy-legacy-app/build.gradle`
 
 ## Benefits of These Updates
 

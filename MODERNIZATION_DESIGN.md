@@ -41,12 +41,12 @@ Establish the foundation for modular architecture without breaking existing func
 ### Phase 1.1: Module Structure Setup
 
 **Prompt to Agent**: 
-"Create a multi-module Android project structure. Add the following Gradle modules to the project: ':core:common', ':core:ui', ':repository', ':usecase'. Update settings.gradle to include all modules. Create basic build.gradle files for each module with appropriate dependencies. Ensure the main ':app' module depends on all modules. Do not move any existing code yet - just create the empty module structure."
+"Create a multi-module Android project structure. Add the following Gradle modules to the project: ':core:common', ':core:ui', ':repository', ':usecase'. Update settings.gradle to include all modules. Create basic build.gradle files for each module with appropriate dependencies. Ensure the main ':legacy-app' module depends on all modules. Do not move any existing code yet - just create the empty module structure."
 
 **Success Criteria**:
 - All modules created with proper build.gradle files
 - Project builds successfully with empty modules
-- Dependencies graph is correct (app -> usecase -> repository -> core)
+- Dependencies graph is correct (legacy-app -> usecase -> repository -> core)
 
 **Validation**:
 - `./gradlew build` succeeds

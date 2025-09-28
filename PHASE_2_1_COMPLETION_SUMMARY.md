@@ -24,10 +24,10 @@
 ### **📁 Files Created/Modified**
 
 #### **Hilt DI Modules:**
-- `app/src/main/java/ru/orangesoftware/financisto/di/ApplicationModule.kt`
-- `app/src/main/java/ru/orangesoftware/financisto/di/DatabaseModule.kt`
-- `app/src/main/java/ru/orangesoftware/financisto/di/NetworkModule.kt`
-- `app/src/main/java/ru/orangesoftware/financisto/di/RepositoryModule.kt`
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/di/ApplicationModule.kt`
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/di/DatabaseModule.kt`
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/di/NetworkModule.kt`
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/di/RepositoryModule.kt`
 
 #### **Modern Repository Layer:**
 - `repository/src/main/java/ru/orangesoftware/financisto/repository/modern/AccountRepository.kt`
@@ -36,7 +36,7 @@
 - `usecase/src/main/java/ru/orangesoftware/financisto/usecase/modern/AccountUseCases.kt`
 
 #### **Application Class:**
-- `app/src/main/java/ru/orangesoftware/financisto/app/FinancistoApp.java` - Migration strategy documented
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/legacy-app/FinancistoApp.java` - Migration strategy documented
 
 ## 🚀 MIGRATION STRATEGY ESTABLISHED
 

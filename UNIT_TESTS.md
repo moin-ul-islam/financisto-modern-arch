@@ -8,7 +8,7 @@ This document analyzes the existing unit tests in the Financisto codebase and ex
 
 ### Test Organization
 ```
-app/src/test/java/ru/orangesoftware/financisto/
+legacy-legacy-app/src/test/java/ru/orangesoftware/financisto/
 ├── activity/          # Activity tests
 ├── backup/           # Backup functionality tests
 ├── blotter/          # Transaction list tests

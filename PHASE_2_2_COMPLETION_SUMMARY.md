@@ -39,10 +39,10 @@
 
 #### **Updated Data Layer:**
 - `repository/src/main/java/ru/orangesoftware/financisto/data/dao/TransactionDao.kt` - ✅ Added missing query methods
-- `app/src/main/java/ru/orangesoftware/financisto/di/RepositoryModule.kt` - ✅ Added TransactionRepository binding
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/di/RepositoryModule.kt` - ✅ Added TransactionRepository binding
 
 #### **Demonstration Code:**
-- `app/src/main/java/ru/orangesoftware/financisto/demo/ModernDataLayerDemo.kt` - ✅ Shows proper usage patterns
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/demo/ModernDataLayerDemo.kt` - ✅ Shows proper usage patterns
 
 ## 🚀 MIGRATION STRATEGY ACHIEVED
 

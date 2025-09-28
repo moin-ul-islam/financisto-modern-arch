@@ -93,7 +93,7 @@ object FeatureFlags {
 ### 6. Dependency Integration ✅
 Updated build configurations:
 - Added feature modules to `settings.gradle`
-- Added feature module dependencies to `app/build.gradle`
+- Added feature module dependencies to `legacy-app/build.gradle`
 - Added `:repository` dependency to all feature modules for use case access
 - Added Hilt, ViewModel, and Coroutines dependencies to feature modules
 
@@ -167,7 +167,7 @@ Successfully implemented clean architecture data flow:
 
 ### Updated Build Files:
 - `settings.gradle` - Added feature modules
-- `app/build.gradle` - Added feature dependencies
+- `legacy-app/build.gradle` - Added feature dependencies
 - `app-playground/build.gradle` - Added feature dependencies
 
 ### Updated Core:
@@ -195,7 +195,7 @@ Successfully implemented clean architecture data flow:
 - Clean separation between feature modules enables parallel development
 
 **Phase 4.1 implementation is complete and ready for integration testing.**
-- ✅ Updated `settings.gradle` and `app/build.gradle` for module integration
+- ✅ Updated `settings.gradle` and `legacy-app/build.gradle` for module integration
 - ✅ Ensured proper dependency hierarchy: app → feature modules → usecase/repository → core
 
 ### 2. UI State Implementation
@@ -347,7 +347,7 @@ Activity → Bridge → ViewModel → UseCase → Repository → Entity
 ### Configuration
 - `core/common/src/main/kotlin/ru/orangesoftware/financisto/core/common/FeatureFlags.kt` (updated)
 - `settings.gradle` (updated)
-- `app/build.gradle` (updated)
+- `legacy-app/build.gradle` (updated)
 
 ## Success Metrics
 - ✅ 100% compilation success rate

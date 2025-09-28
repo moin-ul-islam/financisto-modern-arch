@@ -19,7 +19,7 @@
   - Added resolution strategy to force Kotlin 1.7.10 and coroutines 1.6.4
   - Ensured version consistency across all modules
 
-- ✅ **App Module (`app/build.gradle`)**:
+- ✅ **Legacy App Module (`legacy-app/build.gradle`)**:
   - Added Hilt and KAPT plugins
   - Integrated all modern dependency bundles
   - Changed Android Annotations from `annotationProcessor` to `kapt`
@@ -75,14 +75,14 @@
 - `settings.gradle` - No changes needed
 
 ### Module Build Files:
-- `app/build.gradle` - Hilt, KAPT, and modern bundles added
+- `legacy-app/build.gradle` - Hilt, KAPT, and modern bundles added
 - `core/common/build.gradle` - Modern architecture dependencies
 - `core/ui/build.gradle` - Modern architecture dependencies  
 - `repository/build.gradle` - Room, Hilt, coroutines
 - `usecase/build.gradle` - Hilt, lifecycle, coroutines
 
 ### Source Code:
-- `app/src/main/java/ru/orangesoftware/financisto/app/FinancistoApp.java` - Migration strategy documented
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/legacy-app/FinancistoApp.java` - Migration strategy documented
 
 ## 🚀 NEXT STEPS (Future Phases)
 1. **Phase 2.1**: Gradually introduce Hilt components

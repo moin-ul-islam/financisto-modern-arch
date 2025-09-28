@@ -270,8 +270,8 @@ sealed class TransactionFormAction
 - SplitsBlotterActivity
 
 **Files Modified**:
-- `app/src/main/java/ru/orangesoftware/financisto/activity/BlotterActivity.java` - Added early bridge initialization
-- `app/src/main/java/ru/orangesoftware/financisto/bridge/BridgeManager.java` - Added db.open() calls
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/activity/BlotterActivity.java` - Added early bridge initialization
+- `legacy-app/src/main/java/ru/orangesoftware/financisto/bridge/BridgeManager.java` - Added db.open() calls
 
 **Status**: ✅ **RESOLVED** - App no longer crashes on startup, DatabaseAdapter properly initialized
 
