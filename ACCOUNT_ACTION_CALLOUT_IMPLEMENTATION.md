@@ -70,7 +70,7 @@ The callout maintains the same 9 actions as the legacy implementation:
 
 ## Demo
 
-The implementation can be tested using the existing `AccountListComposeActivity` in the app-playground module. Long-click any account to see the callout in action.
+The implementation can be tested using the existing `AccountListComposeActivity` in the modern-app module. Long-click any account to see the callout in action.
 
 ## Future Improvements
 

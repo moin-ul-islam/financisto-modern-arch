@@ -67,7 +67,7 @@ The callout maintains the same 3x3 grid layout and functionality while providing
 ## 📱 Testing
 
 To test the improved callout:
-1. Run the app-playground module
+1. Run the modern-app module
 2. Navigate to Account List
 3. Long-press any account item
 4. Observe the enhanced callout with better styling and positioning

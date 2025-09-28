@@ -97,7 +97,7 @@ Updated build configurations:
 - Added `:repository` dependency to all feature modules for use case access
 - Added Hilt, ViewModel, and Coroutines dependencies to feature modules
 
-### 7. Demo Integration in app-playground ✅
+### 7. Demo Integration in modern-app ✅
 Created comprehensive demo activities to showcase new ViewModels:
 
 **BlotterViewModelDemoActivity**:
@@ -130,7 +130,7 @@ Successfully implemented clean architecture data flow:
 
 ## Build Status ✅
 - All feature modules compile successfully
-- app-playground demo activities compile and integrate correctly
+- modern-app demo activities compile and integrate correctly
 - Fixed import issues, method naming, and type compatibility
 - Resolved smart casting issues for cross-module nullable properties
 
@@ -168,17 +168,17 @@ Successfully implemented clean architecture data flow:
 ### Updated Build Files:
 - `settings.gradle` - Added feature modules
 - `legacy-app/build.gradle` - Added feature dependencies
-- `app-playground/build.gradle` - Added feature dependencies
+- `modern-app/build.gradle` - Added feature dependencies
 
 ### Updated Core:
 - `core/common/src/main/kotlin/ru/orangesoftware/financisto/core/common/FeatureFlags.kt`
 
 ### New Demo Code:
-- `app-playground/src/main/java/ru/orangesoftware/financisto/playground/ui/*DemoActivity.kt`
-- `app-playground/src/main/java/ru/orangesoftware/financisto/playground/ui/adapter/*Adapter.kt`
-- `app-playground/src/main/res/layout/activity_*_demo.xml`
-- `app-playground/src/main/res/layout/item_*_demo.xml`
-- `app-playground/src/main/AndroidManifest.xml`
+- `modern-app/src/main/java/ru/orangesoftware/financisto/playground/ui/*DemoActivity.kt`
+- `modern-app/src/main/java/ru/orangesoftware/financisto/playground/ui/adapter/*Adapter.kt`
+- `modern-app/src/main/res/layout/activity_*_demo.xml`
+- `modern-app/src/main/res/layout/item_*_demo.xml`
+- `modern-app/src/main/AndroidManifest.xml`
 
 ## Next Steps (Phase 4.2)
 1. **Legacy Integration**: Integrate ViewModels into actual legacy Activities

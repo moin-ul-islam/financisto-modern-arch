@@ -24,14 +24,14 @@ The `AccountListComposeActivity` now includes a `NavHost` with the following rou
    - When account is successfully created, it calls `onAccountCreated()` which also pops back to AccountListScreen
 
 ### 3. Modified Files
-- `app-playground/src/main/java/ru/orangesoftware/financisto/playground/ui/AccountListComposeActivity.kt`
+- `modern-app/src/main/java/ru/orangesoftware/financisto/playground/ui/AccountListComposeActivity.kt`
   - Added Navigation Component imports
   - Replaced direct AccountListScreen with AccountNavigationGraph composable
   - Implemented NavHost with proper route definitions
   - Connected navigation callbacks from both screens
 
 ### 4. Dependencies
-The following dependencies in `app-playground/build.gradle` enable navigation:
+The following dependencies in `modern-app/build.gradle` enable navigation:
 ```groovy
 implementation libs.compose.navigation
 implementation libs.compose.hilt.navigation
