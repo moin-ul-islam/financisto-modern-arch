@@ -5,7 +5,6 @@ import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.dao.RunningBalanceDao
 import ru.orangesoftware.financisto.data.dao.TransactionDao
 import ru.orangesoftware.financisto.data.model.RunningBalanceEntity
-import ru.orangesoftware.financisto.data.model.TransactionEntity
 import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import javax.inject.Inject
@@ -104,65 +103,6 @@ class RecalculateAccountBalanceUseCase @Inject constructor(
             }
 
             Result.success(cumulativeBalance)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
-/**
- * Use case for recalculating balances for all accounts.
- */
-@Singleton
-class RecalculateAllAccountBalancesUseCase @Inject constructor(
-    private val accountRepository: AccountRepository,
-    private val recalculateAccountBalanceUseCase: RecalculateAccountBalanceUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) {
-
-    /**
-     * Recalculates balances for all accounts in the system.
-     * This is used during data migration or integrity checks.
-     *
-     * @return Result with count of accounts processed on success
-     */
-    suspend fun execute(): Result<Int> = withContext(ioDispatcher) {
-        try {
-            val accounts = accountRepository.getAllAccounts()
-            var processedCount = 0
-
-            for (account in accounts) {
-                recalculateAccountBalanceUseCase.execute(account.id)
-                processedCount++
-            }
-
-            Result.success(processedCount)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
-/**
- * Use case for getting the current balance of an account.
- */
-@Singleton
-class GetAccountBalanceUseCase @Inject constructor(
-    private val runningBalanceDao: RunningBalanceDao,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) {
-
-    /**
-     * Gets the current balance for an account.
-     * This returns the most recent running balance entry.
-     *
-     * @param accountId The account ID to get balance for
-     * @return Result with balance amount on success
-     */
-    suspend fun execute(accountId: Long): Result<Long> = withContext(ioDispatcher) {
-        try {
-            val balance = runningBalanceDao.getLastRunningBalanceForAccount(accountId) ?: 0L
-            Result.success(balance)
         } catch (e: Exception) {
             Result.failure(e)
         }

@@ -31,10 +31,6 @@ import ru.orangesoftware.financisto.blotter.AccountTotalCalculationTask;
 import ru.orangesoftware.financisto.blotter.BlotterFilter;
 import ru.orangesoftware.financisto.blotter.BlotterTotalCalculationTask;
 import ru.orangesoftware.financisto.blotter.TotalCalculationTask;
-import ru.orangesoftware.financisto.bridge.AccountBridge;
-import ru.orangesoftware.financisto.bridge.BlotterBridge;
-import ru.orangesoftware.financisto.bridge.BridgeManager;
-import ru.orangesoftware.financisto.bridge.TransactionBridge;
 import ru.orangesoftware.financisto.dialog.TransactionInfoDialog;
 import ru.orangesoftware.financisto.filter.WhereFilter;
 import ru.orangesoftware.financisto.model.Account;
@@ -80,11 +76,6 @@ public class BlotterActivity extends AbstractListActivity {
     protected boolean isAccountBlotter = false;
     protected boolean showAllBlotterButtons = true;
 
-    // Phase 1.2: Bridge pattern for gradual migration
-    private BlotterBridge blotterBridge;
-    private AccountBridge accountBridge;
-    private TransactionBridge transactionBridge;
-
     public BlotterActivity(int layoutId) {
         super(layoutId);
     }
@@ -119,27 +110,10 @@ public class BlotterActivity extends AbstractListActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Phase 1.2: Initialize bridges early to ensure they're available in internalOnCreate()
-        initializeBridges();
         super.onCreate(savedInstanceState);
-        
-
-        
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater = new NodeInflater(layoutInflater);
         integrityCheck();
-    }
-    
-    /**
-     * Initialize bridges using BridgeManager for Hilt access.
-     * This method is called lazily to ensure proper initialization timing.
-     */
-    private void initializeBridges() {
-        if (blotterBridge == null) {
-            blotterBridge = BridgeManager.getBlotterBridge(this);
-            accountBridge = BridgeManager.getAccountBridge(this);
-            transactionBridge = BridgeManager.getTransactionBridge(this);
-        }
     }
 
     @Override
@@ -259,7 +233,7 @@ public class BlotterActivity extends AbstractListActivity {
                 long accountId = blotterFilter.getAccountId();
                 if (accountId != -1) {
                     // get account type
-                    Account account = accountBridge.getAccount(accountId);
+                    Account account = db.getAccount(accountId);
                     AccountType type = AccountType.valueOf(account.type);
                     if (type.isCreditCard) {
                         // Show menu for Credit Cards - bill
@@ -299,7 +273,7 @@ public class BlotterActivity extends AbstractListActivity {
 
             case R.id.opt_menu_bill:
                 if (accountId != -1) {
-                    Account account = accountBridge.getAccount(accountId);
+                    Account account = db.getAccount(accountId);
 
                     // call credit card bill activity sending account id
                     if (account.paymentDay > 0 && account.closingDay > 0) {
@@ -475,15 +449,10 @@ public class BlotterActivity extends AbstractListActivity {
 
     @Override
     protected Cursor createCursor() {
-        // Lazy initialization of bridges to ensure they're available when needed
-        if (blotterBridge == null) {
-            initializeBridges();
-        }
-        
         if (isAccountBlotter) {
-            return blotterBridge.getBlotterForAccount(blotterFilter);
+            return db.getBlotterForAccount(blotterFilter);
         } else {
-            return blotterBridge.getBlotter(blotterFilter);
+            return db.getBlotter(blotterFilter);
         }
     }
 
@@ -546,7 +515,7 @@ public class BlotterActivity extends AbstractListActivity {
         boolean edit = data.getBooleanExtra(SelectTemplateActivity.EDIT_AFTER_CREATION, false);
         if (templateId > 0) {
             long id = duplicateTransaction(templateId, multiplier);
-            Transaction t = transactionBridge.getTransaction(id);
+            Transaction t = db.getTransaction(id);
             if (t.fromAmount == 0 || edit) {
                 new BlotterOperations(this, db, id).asNewFromTemplate().editTransaction();
             }
@@ -561,7 +530,7 @@ public class BlotterActivity extends AbstractListActivity {
     protected void applyFilter() {
         long accountId = blotterFilter.getAccountId();
         if (accountId != -1) {
-            Account a = accountBridge.getAccount(accountId);
+            Account a = db.getAccount(accountId);
             bAdd.setVisibility(a != null && a.isActive ? View.VISIBLE : View.GONE);
             if (showAllBlotterButtons) {
                 bTransfer.setVisibility(a != null && a.isActive ? View.VISIBLE : View.GONE);
