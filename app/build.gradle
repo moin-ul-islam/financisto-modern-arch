@@ -6,9 +6,6 @@ repositories {
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'org.jetbrains.kotlin.android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'dagger.hilt.android.plugin'
 
 android {
     compileSdk libs.versions.compileSdk.get().toInteger()
@@ -35,9 +32,6 @@ android {
             java {
                 srcDirs 'src/main/java'
             }
-            kotlin {
-                srcDirs 'src/main/kotlin'
-            }
         }
     }
 
@@ -56,11 +50,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-
-    kotlinOptions {
-        jvmTarget = '11'
-    }
-
 
     testOptions {
         unitTests {
@@ -88,30 +77,6 @@ android {
 }
 
 dependencies {
-    // Module dependencies
-    implementation project(':core:common')
-    implementation project(':core:ui')
-    implementation project(':repository')
-    implementation project(':usecase')
-    implementation project(':feature:blotter')
-    implementation project(':feature:account')
-    implementation project(':feature:transaction')
-    
-    // Kotlin dependencies for modernization
-    implementation libs.kotlin.stdlib
-    implementation libs.bundles.coroutines
-    
-    // Modern Android Architecture Components
-    implementation libs.bundles.lifecycle
-    implementation libs.bundles.navigation
-    implementation libs.bundles.room
-    kapt libs.androidx.room.compiler
-    
-    // Hilt Dependency Injection (new - coexisting with Android Annotations)
-    implementation libs.bundles.hilt
-    kapt libs.hilt.compiler
-    kapt libs.androidx.hilt.compiler
-    
     // Legacy AndroidX support
     implementation libs.androidx.legacy.support.v4
     implementation libs.androidx.appcompat
@@ -120,7 +85,7 @@ dependencies {
     implementation libs.bundles.play.services
 
     // Android Annotations (legacy - keeping for coexistence)
-    kapt libs.androidannotations
+    annotationProcessor libs.androidannotations
     implementation libs.androidannotations.api
 
     implementation libs.gson
@@ -128,7 +93,6 @@ dependencies {
 
     implementation libs.dropbox.core.sdk
     implementation libs.okhttp
-//    implementation libs.okio
     implementation libs.eventbus
     implementation libs.material.datetimepicker
     implementation libs.commons.io

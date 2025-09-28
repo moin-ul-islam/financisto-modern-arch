@@ -49,7 +49,6 @@ gson = "2.10.1"
 trove4j = "3.0.3"
 dropboxSdk = "5.4.5"
 okhttp = "4.12.0"
-okio = "3.6.0"
 eventbus = "3.3.1"
 materialDatetimePicker = "4.2.3"
 commonsIo = "2.5"
@@ -101,7 +100,6 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 trove4j = { group = "net.sf.trove4j", name = "trove4j", version.ref = "trove4j" }
 dropbox-core-sdk = { group = "com.dropbox.core", name = "dropbox-core-sdk", version.ref = "dropboxSdk" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 eventbus = { group = "org.greenrobot", name = "eventbus", version.ref = "eventbus" }
 material-datetimepicker = { group = "com.wdullaer", name = "materialdatetimepicker", version.ref = "materialDatetimePicker" }
 commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
