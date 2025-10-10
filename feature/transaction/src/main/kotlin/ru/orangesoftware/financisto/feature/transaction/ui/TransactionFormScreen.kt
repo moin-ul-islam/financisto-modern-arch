@@ -171,19 +171,34 @@ private fun TransactionFormContent(
     val scrollState = rememberScrollState()
     
     Column(
-        modifier = modifier
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.verticalScroll(scrollState)
     ) {
-        // Status and Date/Time Row
-        StatusDateTimeRow(
-            status = uiState.status,
-            dateTime = uiState.dateTime,
-            formattedDateTime = uiState.formattedDateTime,
-            onStatusClick = { onAction(TransactionFormAction.ShowStatusPicker) },
-            onDateTimeClick = { onAction(TransactionFormAction.ShowDateTimePicker) }
+        // Beautiful gradient amount header (not scrollable)
+        AmountHeaderCard(
+            amount = uiState.amount,
+            currencySymbol = uiState.selectedAccount?.currencySymbol ?: "$",
+            isIncome = uiState.isIncome,
+            onAmountChanged = { newAmount ->
+                onAction(TransactionFormAction.UpdateAmount(newAmount))
+            },
+            onToggleIncomeExpense = {
+                onAction(TransactionFormAction.ToggleIncomeExpense)
+            }
         )
+        
+        // Form fields (scrollable)
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Status and Date/Time Row
+            StatusDateTimeRow(
+                status = uiState.status,
+                dateTime = uiState.dateTime,
+                formattedDateTime = uiState.formattedDateTime,
+                onStatusClick = { onAction(TransactionFormAction.ShowStatusPicker) },
+                onDateTimeClick = { onAction(TransactionFormAction.ShowDateTimePicker) }
+            )
         
         // Account Selection
         AccountSelectionField(
@@ -215,21 +230,7 @@ private fun TransactionFormContent(
                 }
             )
         }
-        
-        // Amount Input
-        AmountInputField(
-            amount = uiState.amount,
-            formattedAmount = uiState.formattedAmount,
-            currencySymbol = uiState.selectedAccount?.currencySymbol ?: "",
-            isIncome = uiState.isIncome,
-            onAmountChanged = { amount ->
-                onAction(TransactionFormAction.UpdateAmount(amount))
-            },
-            onIncomeExpenseToggle = {
-                onAction(TransactionFormAction.ToggleIncomeExpense)
-            }
-        )
-        
+
         // Exchange Rate (for multi-currency transfers)
         if (uiState.isTransfer && uiState.isDifferentCurrency) {
             ExchangeRateField(
@@ -305,15 +306,16 @@ private fun TransactionFormContent(
             )
         }
         
-        // Validation Errors
-        if (uiState.validationErrors.isNotEmpty()) {
-            ValidationErrorCard(
-                errors = uiState.validationErrors
-            )
+            // Validation Errors
+            if (uiState.validationErrors.isNotEmpty()) {
+                ValidationErrorCard(
+                    errors = uiState.validationErrors
+                )
+            }
+
+            // Bottom spacer for FAB
+            Spacer(modifier = Modifier.height(80.dp))
         }
-        
-        // Bottom spacer for FAB
-        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 

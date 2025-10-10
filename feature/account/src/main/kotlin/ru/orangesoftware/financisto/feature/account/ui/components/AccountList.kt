@@ -1,7 +1,9 @@
 package ru.orangesoftware.financisto.feature.account.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -9,12 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import ru.orangesoftware.financisto.core.ui.theme.Spacing
 import ru.orangesoftware.financisto.feature.account.AccountListItem
 import ru.orangesoftware.financisto.feature.account.AccountState
 
 /**
- * Lazy list of accounts that efficiently renders large lists.
- * Maintains the same visual appearance as the legacy ListView implementation.
+ * Modern account list with total balance card at the top
+ * and beautiful card-based account items
  */
 @Composable
 fun AccountList(
@@ -25,10 +28,25 @@ fun AccountList(
 ) {
     val density = LocalDensity.current
     
+    // Calculate total balance from all accounts
+    val totalBalance = accounts.sumOf { it.balanceAmount }
+    val formattedTotal = formatBalance(totalBalance)
+    
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(vertical = 2.dp)
+        contentPadding = PaddingValues(vertical = Spacing.Small)
     ) {
+        // Total Balance Card at the top
+        item(key = "total_balance") {
+            TotalBalanceCard(
+                totalBalance = formattedTotal,
+                monthlyChange = "", // Can be calculated from transactions
+                isPositiveChange = totalBalance >= 0
+            )
+            Spacer(modifier = Modifier.height(Spacing.Small))
+        }
+        
+        // Account items
         itemsIndexed(
             items = accounts,
             key = { _, account -> account.id }
@@ -61,4 +79,13 @@ fun AccountList(
             )
         }
     }
+}
+
+/**
+ * Helper function to format balance amount
+ */
+private fun formatBalance(amount: Long): String {
+    val absAmount = kotlin.math.abs(amount) / 100.0
+    val sign = if (amount < 0) "-" else ""
+    return String.format("%s$%,.2f", sign, absAmount)
 }

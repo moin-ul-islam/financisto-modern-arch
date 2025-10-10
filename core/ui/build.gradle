@@ -28,12 +28,22 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        compose true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion libs.versions.composeCompiler.get()
     }
 }
 
 dependencies {
     implementation project(':core:common')
     implementation libs.bundles.kotlin
+    
+    // Compose dependencies
+    implementation platform(libs.compose.bom)
+    implementation libs.bundles.compose
+    implementation libs.compose.material3
     
     // Dependency Injection
     implementation libs.bundles.hilt
