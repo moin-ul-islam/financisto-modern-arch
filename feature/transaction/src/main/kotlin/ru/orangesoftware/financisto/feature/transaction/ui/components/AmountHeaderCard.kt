@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -68,15 +69,6 @@ fun AmountHeaderCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Transaction type label
-                Text(
-                    text = if (isIncome) "🟢 INCOME" else "🔴 EXPENSE",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = Spacing.Medium)
-                )
-                
                 // Amount input display
                 AmountDisplayInput(
                     amount = amount,
@@ -107,11 +99,11 @@ private fun AmountDisplayInput(
     isIncome: Boolean,
     onAmountChanged: (String) -> Unit
 ) {
-    var isEditing by remember { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
     
     // Animate scale when typing
     val scale by animateFloatAsState(
-        targetValue = if (isEditing) 1.05f else 1.0f,
+        targetValue = if (isFocused && amount.isNotEmpty()) 1.05f else 1.0f,
         animationSpec = tween(durationMillis = 100),
         label = "scale_animation"
     )
@@ -132,26 +124,59 @@ private fun AmountDisplayInput(
         )
         
         // Amount input that looks like a display
-        BasicTextField(
-            value = amount.ifEmpty { "0.00" },
-            onValueChange = { newValue ->
-                // Only allow numbers and decimal point
-                if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
-                    onAmountChanged(newValue)
+        Box(
+            modifier = Modifier.defaultMinSize(minWidth = 200.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // Placeholder text - only show when empty AND not focused
+            if (amount.isEmpty() && !isFocused) {
+                Text(
+                    text = "0.00",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = (-1).sp
+                    ),
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            }
+            
+            // Actual input field
+            BasicTextField(
+                value = amount,
+                onValueChange = { newValue ->
+                    // Only allow numbers and decimal point
+                    if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                        onAmountChanged(newValue)
+                    }
+                },
+                textStyle = MaterialTheme.typography.displayLarge.copy(
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    letterSpacing = (-1).sp
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                cursorBrush = SolidColor(Color.White),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        isFocused = focusState.isFocused
+                    },
+                decorationBox = { innerTextField ->
+                    // Track focus state
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        innerTextField()
+                    }
                 }
-            },
-            textStyle = MaterialTheme.typography.displayLarge.copy(
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                letterSpacing = (-1).sp
-            ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            cursorBrush = SolidColor(Color.White),
-            modifier = Modifier.defaultMinSize(minWidth = 200.dp)
-        )
+            )
+        }
     }
 }
 
@@ -171,7 +196,7 @@ private fun IncomeExpenseToggleButtons(
     ) {
         // Income Button
         ToggleButton(
-            text = "💚 Income",
+            text = "Income",
             isSelected = isIncome,
             onClick = { if (!isIncome) onToggle() },
             selectedColor = Color(0xFF4CAF50),
@@ -180,7 +205,7 @@ private fun IncomeExpenseToggleButtons(
         
         // Expense Button
         ToggleButton(
-            text = "❤️ Expense",
+            text = "Expense",
             isSelected = !isIncome,
             onClick = { if (isIncome) onToggle() },
             selectedColor = Color(0xFFEF5350),
