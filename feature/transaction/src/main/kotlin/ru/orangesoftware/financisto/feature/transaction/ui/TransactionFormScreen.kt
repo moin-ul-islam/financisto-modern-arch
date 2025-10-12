@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import ru.orangesoftware.financisto.feature.transaction.SplitTransactionItem
 import androidx.navigation.NavBackStackEntry
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
+import ru.orangesoftware.financisto.core.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -168,29 +170,48 @@ private fun TransactionFormContent(
     onAction: (TransactionFormAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
-    
-    Column(
-        modifier = modifier.verticalScroll(scrollState)
-    ) {
-        // Beautiful gradient amount header (not scrollable)
-        AmountHeaderCard(
-            amount = uiState.amount,
-            currencySymbol = uiState.selectedAccount?.currencySymbol ?: "$",
-            isIncome = uiState.isIncome,
-            onAmountChanged = { newAmount ->
-                onAction(TransactionFormAction.UpdateAmount(newAmount))
-            },
-            onToggleIncomeExpense = {
-                onAction(TransactionFormAction.ToggleIncomeExpense)
-            }
-        )
+    Box(modifier = modifier) {
+        val scrollState = rememberScrollState()
         
-        // Form fields (scrollable)
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.verticalScroll(scrollState)
         ) {
+            // Beautiful gradient amount header (not scrollable)
+            AmountHeaderCard(
+                amount = uiState.amount,
+                currencySymbol = uiState.selectedAccount?.currencySymbol ?: "$",
+                isIncome = uiState.isIncome,
+                onAmountChanged = { newAmount ->
+                    onAction(TransactionFormAction.UpdateAmount(newAmount))
+                },
+                onToggleIncomeExpense = {
+                    onAction(TransactionFormAction.ToggleIncomeExpense)
+                }
+            )
+            
+            // Form fields card that overlaps with header slightly
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-16).dp), // Overlap with the header
+                shape = RoundedCornerShape(
+                    topStart = CardDimensions.RadiusLarge,
+                    topEnd = CardDimensions.RadiusLarge,
+                    bottomStart = 0.dp,
+                    bottomEnd = 0.dp
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = CardDimensions.ElevationMedium),
+                colors = CardDefaults.cardColors(containerColor = CardBackground)
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        start = CardDimensions.PaddingLarge,
+                        end = CardDimensions.PaddingLarge,
+                        top = CardDimensions.PaddingLarge + 16.dp, // Extra top padding for overlap
+                        bottom = CardDimensions.PaddingLarge
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Medium)
+                ) {
             // Status and Date/Time Row
             StatusDateTimeRow(
                 status = uiState.status,
@@ -306,15 +327,17 @@ private fun TransactionFormContent(
             )
         }
         
-            // Validation Errors
-            if (uiState.validationErrors.isNotEmpty()) {
-                ValidationErrorCard(
-                    errors = uiState.validationErrors
-                )
-            }
+                    // Validation Errors
+                    if (uiState.validationErrors.isNotEmpty()) {
+                        ValidationErrorCard(
+                            errors = uiState.validationErrors
+                        )
+                    }
 
-            // Bottom spacer for FAB
-            Spacer(modifier = Modifier.height(80.dp))
+                    // Bottom spacer for FAB
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
         }
     }
 }
