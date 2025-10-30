@@ -1,6 +1,7 @@
 package ru.orangesoftware.financisto.feature.transaction.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -279,27 +280,3 @@ fun ProjectSelectionField(
     }
 }
 
-/**
- * Note input field
- */
-@Composable
-fun NoteInputField(
-    note: String,
-    onNoteChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = note,
-        onValueChange = onNoteChanged,
-        label = { Text("Note") },
-        placeholder = { Text("Add a note...") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = null
-            )
-        },
-        modifier = modifier.fillMaxWidth(),
-        maxLines = 3
-    )
-}

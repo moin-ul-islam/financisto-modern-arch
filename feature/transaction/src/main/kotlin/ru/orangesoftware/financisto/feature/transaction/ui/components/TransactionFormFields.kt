@@ -130,6 +130,7 @@ fun AccountSelectionField(
     ) {
         OutlinedTextField(
             value = selectedAccount?.title ?: "",
+            shape = RoundedCornerShape(size = 24.dp),
             onValueChange = { },
             readOnly = true,
             label = { Text(label) },
@@ -145,9 +146,6 @@ fun AccountSelectionField(
                     imageVector = Icons.Default.AccountBox,
                     contentDescription = null
                 )
-            },
-            supportingText = selectedAccount?.let {
-                { Text("${it.currencySymbol} ${it.balance}") }
             }
         )
         
