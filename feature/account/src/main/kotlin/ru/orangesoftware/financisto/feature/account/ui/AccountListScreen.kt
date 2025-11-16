@@ -126,8 +126,6 @@ fun AccountListScreen(
                 val actions = AccountActionCalloutUtils.createAccountActions(account.isActive)
                 AccountActionCallout(
                     actions = actions,
-                    isVisible = showCallout,
-                    anchorBounds = calloutAnchorBounds,
                     onActionClick = { actionIndex ->
                         val action = actions[actionIndex].action
                         handleAccountAction(
@@ -142,10 +140,6 @@ fun AccountListScreen(
                             onNavigateToUpdateBalance = onNavigateToUpdateBalance,
                             onNavigateToPurgeAccount = onNavigateToPurgeAccount
                         )
-                        showCallout = false
-                        selectedAccount = null
-                    },
-                    onDismiss = {
                         showCallout = false
                         selectedAccount = null
                     }

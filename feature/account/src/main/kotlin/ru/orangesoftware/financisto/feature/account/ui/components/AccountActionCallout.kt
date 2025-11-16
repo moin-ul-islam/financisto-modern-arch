@@ -1,7 +1,5 @@
 package ru.orangesoftware.financisto.feature.account.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,12 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,273 +16,34 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.addOutline
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import ru.orangesoftware.financisto.feature.account.AccountActionCalloutItem
 
 /**
- * Custom shape that creates a rounded rectangle with an arrow pointing up or down
- */
-private class CalloutWithArrowShape(
-    private val cornerRadius: androidx.compose.ui.unit.Dp,
-    private val arrowWidth: androidx.compose.ui.unit.Dp,
-    private val arrowHeight: androidx.compose.ui.unit.Dp,
-    private val arrowOffset: androidx.compose.ui.unit.Dp,
-    private val pointsUp: Boolean = true
-) : Shape {
-    override fun createOutline(
-        size: androidx.compose.ui.geometry.Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): androidx.compose.ui.graphics.Outline {
-        val cornerRadiusPx = with(density) { cornerRadius.toPx() }
-        val arrowWidthPx = with(density) { arrowWidth.toPx() }
-        val arrowHeightPx = with(density) { arrowHeight.toPx() }
-        val arrowOffsetPx = with(density) { arrowOffset.toPx() }
-
-        val path = Path().apply {
-            if (pointsUp) {
-                // Arrow pointing up (callout below anchor)
-                // Start from top-left corner (accounting for arrow)
-                moveTo(cornerRadiusPx, arrowHeightPx)
-                
-                // Top-left rounded corner
-                quadraticBezierTo(0f, arrowHeightPx, 0f, arrowHeightPx + cornerRadiusPx)
-                
-                // Left edge
-                lineTo(0f, size.height - cornerRadiusPx)
-                
-                // Bottom-left rounded corner
-                quadraticBezierTo(0f, size.height, cornerRadiusPx, size.height)
-                
-                // Bottom edge
-                lineTo(size.width - cornerRadiusPx, size.height)
-                
-                // Bottom-right rounded corner
-                quadraticBezierTo(size.width, size.height, size.width, size.height - cornerRadiusPx)
-                
-                // Right edge
-                lineTo(size.width, arrowHeightPx + cornerRadiusPx)
-                
-                // Top-right rounded corner
-                quadraticBezierTo(size.width, arrowHeightPx, size.width - cornerRadiusPx, arrowHeightPx)
-                
-                // Top edge to arrow start
-                lineTo(arrowOffsetPx + arrowWidthPx / 2f, arrowHeightPx)
-                
-                // Arrow point
-                lineTo(arrowOffsetPx, 0f)
-                
-                // Arrow back to top edge
-                lineTo(arrowOffsetPx - arrowWidthPx / 2f, arrowHeightPx)
-                
-                // Complete top edge
-                lineTo(cornerRadiusPx, arrowHeightPx)
-            } else {
-                // Arrow pointing down (callout above anchor)
-                // Start from top-left corner
-                moveTo(cornerRadiusPx, 0f)
-                
-                // Top-left rounded corner
-                quadraticBezierTo(0f, 0f, 0f, cornerRadiusPx)
-                
-                // Left edge
-                lineTo(0f, size.height - arrowHeightPx - cornerRadiusPx)
-                
-                // Bottom-left rounded corner
-                quadraticBezierTo(0f, size.height - arrowHeightPx, cornerRadiusPx, size.height - arrowHeightPx)
-                
-                // Bottom edge to arrow start
-                lineTo(arrowOffsetPx - arrowWidthPx / 2f, size.height - arrowHeightPx)
-                
-                // Arrow point
-                lineTo(arrowOffsetPx, size.height)
-                
-                // Arrow back to bottom edge
-                lineTo(arrowOffsetPx + arrowWidthPx / 2f, size.height - arrowHeightPx)
-                
-                // Complete bottom edge
-                lineTo(size.width - cornerRadiusPx, size.height - arrowHeightPx)
-                
-                // Bottom-right rounded corner
-                quadraticBezierTo(size.width, size.height - arrowHeightPx, size.width, size.height - arrowHeightPx - cornerRadiusPx)
-                
-                // Right edge
-                lineTo(size.width, cornerRadiusPx)
-                
-                // Top-right rounded corner
-                quadraticBezierTo(size.width, 0f, size.width - cornerRadiusPx, 0f)
-                
-                // Top edge
-                lineTo(cornerRadiusPx, 0f)
-            }
-            
-            close()
-        }
-        
-        return androidx.compose.ui.graphics.Outline.Generic(path)
-    }
-}
-
-/**
- * Account action callout dialog that displays a 3x3 grid of actions
- * with an arrow pointing to the selected account item.
+ * Account action callout dialog that displays a 3x3 grid of actions.
  * 
  * This recreates the functionality of the QuickActionGrid from the legacy app
- * with modern Compose UI and callout-style design.
+ * with modern Compose UI.
  */
 @Composable
 fun AccountActionCallout(
     actions: List<AccountActionCalloutItem>,
-    isVisible: Boolean,
-    anchorBounds: IntOffset,
     onActionClick: (Int) -> Unit,
-    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    android.util.Log.d("AccountActionCallout", "Callout composable called - visible: $isVisible, actions: ${actions.size}")
-    if (!isVisible) return
-    
-    val density = LocalDensity.current
-    val screenPadding = with(density) { 16.dp.toPx().toInt() }
-    val calloutHeight = with(density) { 280.dp.toPx().toInt() } // Estimated callout height
-    val estimatedItemHeight = with(density) { 72.dp.toPx().toInt() } // Estimated item height
-    
-    // Determine if callout should be positioned above or below the anchor
-    // For simplicity, assume screen height is around 800dp (this could be improved with actual screen dimensions)
-    val estimatedScreenHeight = with(density) { 800.dp.toPx().toInt() }
-    val spaceBelow = estimatedScreenHeight - anchorBounds.y
-    val shouldPositionAbove = spaceBelow < (calloutHeight + 100) // 100px buffer
-    
-    // Adjust anchor point based on positioning:
-    // - If callout is below (arrow up): anchor to bottom border (current anchorBounds.y)
-    // - If callout is above (arrow down): anchor to top border (anchorBounds.y - itemHeight)
-    val adjustedAnchorY = if (shouldPositionAbove) {
-        anchorBounds.y - estimatedItemHeight // Point to top edge of item
-    } else {
-        anchorBounds.y // Point to bottom edge of item (as already calculated)
-    }
-    
-    // Calculate callout position
-    val calloutOffset = if (shouldPositionAbove) {
-        // Position above: callout bottom aligns with anchor top
-        IntOffset(
-            x = (anchorBounds.x - 80).coerceAtLeast(screenPadding),
-            y = adjustedAnchorY - calloutHeight - 20 // 20px spacing above anchor top edge
-        )
-    } else {
-        // Position below: callout top aligns below anchor
-        IntOffset(
-            x = (anchorBounds.x - 80).coerceAtLeast(screenPadding),
-            y = adjustedAnchorY + 20 // 20px spacing below anchor bottom edge
-        )
-    }
-    
-    Popup(
-        offset = calloutOffset,
-        onDismissRequest = onDismiss,
-        properties = PopupProperties(
-            focusable = true,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        CalloutContent(
-            actions = actions,
-            onActionClick = onActionClick,
-            anchorBounds = anchorBounds, // Pass original anchor bounds for arrow positioning
-            shouldPositionAbove = shouldPositionAbove,
-            modifier = modifier
-        )
-    }
-}
-
-@Composable
-private fun CalloutContent(
-    actions: List<AccountActionCalloutItem>,
-    onActionClick: (Int) -> Unit,
-    anchorBounds: IntOffset,
-    shouldPositionAbove: Boolean,
-    modifier: Modifier = Modifier
-) {
-    // Calculate arrow position dynamically based on anchor bounds
-    val calloutWidth = 360.dp
-    val density = LocalDensity.current
-    val calloutWidthPx = with(density) { calloutWidth.toPx() }
-    
-    // Calculate where the arrow should point relative to the callout
-    // anchorBounds.x is the center of the account item we want to point to
-    val arrowPositionFromLeft = (anchorBounds.x.toFloat()).coerceIn(
-        50f, // Minimum offset from left edge
-        calloutWidthPx - 50f // Maximum offset from left edge  
-    )
-    val arrowOffset = with(density) { arrowPositionFromLeft.toDp() }
-    
-    // Create a unified callout with integrated arrow
-    val calloutShape = if (shouldPositionAbove) {
-        CalloutWithArrowShape(
-            cornerRadius = 16.dp,
-            arrowWidth = 24.dp,
-            arrowHeight = 12.dp,
-            arrowOffset = arrowOffset,
-            pointsUp = false // Arrow points down when callout is above
-        )
-    } else {
-        CalloutWithArrowShape(
-            cornerRadius = 16.dp,
-            arrowWidth = 24.dp,
-            arrowHeight = 12.dp,
-            arrowOffset = arrowOffset,
-            pointsUp = true // Arrow points up when callout is below
-        )
-    }
-    
-    Surface(
+    ActionGrid(
+        actions = actions,
+        onActionClick = onActionClick,
         modifier = modifier
-            .width(360.dp)
-            .wrapContentHeight()
-            .shadow(
-                elevation = 12.dp,
-                shape = calloutShape,
-                ambientColor = Color.Black.copy(alpha = 0.08f),
-                spotColor = Color.Black.copy(alpha = 0.08f)
-            )
-            .border(
-                width = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant, // Use theme-aware outline color
-                shape = calloutShape
-            ),
-        shape = calloutShape,
-        color = MaterialTheme.colorScheme.surfaceVariant, // Theme-aware surface with slight contrast
-        shadowElevation = 12.dp
-    ) {
-        ActionGrid(
-            actions = actions,
-            onActionClick = onActionClick,
-            modifier = Modifier.padding(
-                top = if (shouldPositionAbove) 16.dp else 28.dp, // Less top padding when arrow is at bottom
-                start = 16.dp,
-                end = 16.dp,
-                bottom = if (shouldPositionAbove) 28.dp else 16.dp // Extra bottom padding when arrow is at bottom
-            )
-        )
-    }
+            .fillMaxWidth()
+            .padding(16.dp)
+    )
 }
 
 @Composable
