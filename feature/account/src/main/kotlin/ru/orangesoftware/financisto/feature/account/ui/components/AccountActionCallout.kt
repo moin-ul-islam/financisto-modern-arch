@@ -40,14 +40,12 @@ fun AccountActionCallout(
     ActionGrid(
         actions = actions,
         onActionClick = onActionClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier = modifier.padding(16.dp)
     )
 }
 
 @Composable
-private fun ActionGrid(
+fun ActionGrid(
     actions: List<AccountActionCalloutItem>,
     onActionClick: (Int) -> Unit,
     modifier: Modifier = Modifier

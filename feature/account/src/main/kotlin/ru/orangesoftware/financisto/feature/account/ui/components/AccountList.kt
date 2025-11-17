@@ -6,28 +6,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.core.ui.theme.Spacing
 import ru.orangesoftware.financisto.feature.account.AccountListItem
-import ru.orangesoftware.financisto.feature.account.AccountState
+import ru.orangesoftware.financisto.feature.account.AccountActionCalloutUtils
+import ru.orangesoftware.financisto.feature.account.ui.components.AccountActionCallout
 
 /**
  * Modern account list with total balance card at the top
- * and beautiful card-based account items
+ * and beautiful card-based account items with action tooltips
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountList(
     accounts: List<AccountListItem>,
     onAccountClick: (Long) -> Unit,
-    onAccountLongClick: (Long, AccountState, IntOffset) -> Unit,
+    onAccountAction: (Long, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val density = LocalDensity.current
-    
     // Calculate total balance from all accounts
     val totalBalance = accounts.sumOf { it.balanceAmount }
     val formattedTotal = formatBalance(totalBalance)
@@ -51,32 +59,43 @@ fun AccountList(
             items = accounts,
             key = { _, account -> account.id }
         ) { index, account ->
-            AccountListItem(
-                account = account,
-                onClick = { onAccountClick(account.id) },
-                onLongClick = { 
-                    // Convert AccountListItem to AccountState
-                    val accountState = AccountState(
-                        id = account.id,
-                        isActive = account.isActive,
-                        title = account.title
-                    )
-                    
-                    // Calculate position based on list index and estimated item height
-                    val estimatedItemHeight = with(density) { 72.dp.toPx() } 
-                    val listPadding = with(density) { 2.dp.toPx() }
-                    
-                    // Point to the bottom border of the item instead of center
-                    val yPosition = (listPadding + (index + 1) * estimatedItemHeight).toInt()
-                    
-                    // X position should be roughly in the center of the account item
-                    val screenWidth = with(density) { 360.dp.toPx() } // Approximate screen width
-                    val xPosition = (screenWidth * 0.3f).toInt() // Position towards left-center of account item
-                    
-                    val bounds = IntOffset(x = xPosition, y = yPosition)
-                    onAccountLongClick(account.id, accountState, bounds)
-                }
-            )
+            val tooltipState = rememberTooltipState(isPersistent = true)
+            val scope = rememberCoroutineScope()
+            val actions = AccountActionCalloutUtils.createAccountActions(account.isActive)
+            
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(8.dp),
+                tooltip = {
+                    PlainTooltip(
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        caretSize = DpSize(width = 24.dp, height = 12.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        AccountActionCallout(
+                            actions = actions,
+                            onActionClick = { actionIndex ->
+                                onAccountAction(account.id, actionIndex)
+                                scope.launch {
+                                    tooltipState.dismiss()
+                                }
+                            },
+                            modifier = Modifier
+                        )
+                    }
+                },
+                state = tooltipState
+            ) {
+                AccountListItem(
+                    account = account,
+                    onClick = { onAccountClick(account.id) },
+                    onLongClick = { 
+                        scope.launch {
+                            tooltipState.show()
+                        }
+                    }
+                )
+            }
         }
     }
 }

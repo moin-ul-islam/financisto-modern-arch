@@ -79,11 +79,6 @@ fun AccountListScreen(
         }
     }
     
-    // Callout state management
-    var showCallout by remember { mutableStateOf(false) }
-    var calloutAnchorBounds by remember { mutableStateOf(IntOffset.Zero) }
-    var selectedAccount by remember { mutableStateOf<AccountState?>(null) }
-    
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -94,12 +89,32 @@ fun AccountListScreen(
                 onAccountClick = { accountId ->
                     onNavigateToBlotter(accountId)
                 },
-                onAccountLongClick = { accountId, accountState, bounds ->
-                    // Show callout for account actions
-                    android.util.Log.d("AccountCallout", "Long click detected for account: ${accountState.title}")
-                    selectedAccount = accountState
-                    calloutAnchorBounds = bounds
-                    showCallout = true
+                onAccountAction = { accountId, actionIndex ->
+                    val account = uiState.screenState.let { state ->
+                        if (state is AccountListScreenState.Content) {
+                            state.data.accounts.find { it.id == accountId }
+                        } else {
+                            null
+                        }
+                    }
+                    account?.let { acc ->
+                        val actions = AccountActionCalloutUtils.createAccountActions(acc.isActive)
+                        if (actionIndex < actions.size) {
+                            val action = actions[actionIndex].action
+                            handleAccountAction(
+                                action = action,
+                                accountId = accountId,
+                                viewModel = viewModel,
+                                onNavigateToAccountDetails = onNavigateToAccountDetails,
+                                onNavigateToBlotter = onNavigateToBlotter,
+                                onNavigateToEditAccount = onNavigateToEditAccount,
+                                onNavigateToAddTransaction = onNavigateToAddTransaction,
+                                onNavigateToAddTransfer = onNavigateToAddTransfer,
+                                onNavigateToUpdateBalance = onNavigateToUpdateBalance,
+                                onNavigateToPurgeAccount = onNavigateToPurgeAccount
+                            )
+                        }
+                    }
                 },
                 onAddClick = {
                     viewModel.handleAction(AccountListAction.CreateNewAccount)
@@ -119,32 +134,6 @@ fun AccountListScreen(
                     viewModel.handleAction(AccountListAction.DismissIntegrityError)
                 }
             )
-            
-            // Account Action Callout
-            selectedAccount?.let { account ->
-                android.util.Log.d("AccountCallout", "Showing callout for account: ${account.title}, visible: $showCallout")
-                val actions = AccountActionCalloutUtils.createAccountActions(account.isActive)
-                AccountActionCallout(
-                    actions = actions,
-                    onActionClick = { actionIndex ->
-                        val action = actions[actionIndex].action
-                        handleAccountAction(
-                            action = action,
-                            accountId = account.id,
-                            viewModel = viewModel,
-                            onNavigateToAccountDetails = onNavigateToAccountDetails,
-                            onNavigateToBlotter = onNavigateToBlotter,
-                            onNavigateToEditAccount = onNavigateToEditAccount,
-                            onNavigateToAddTransaction = onNavigateToAddTransaction,
-                            onNavigateToAddTransfer = onNavigateToAddTransfer,
-                            onNavigateToUpdateBalance = onNavigateToUpdateBalance,
-                            onNavigateToPurgeAccount = onNavigateToPurgeAccount
-                        )
-                        showCallout = false
-                        selectedAccount = null
-                    }
-                )
-            }
             
             // Account Info Dialog
             uiState.accountInfoData?.let { accountInfo ->
@@ -224,7 +213,7 @@ private fun handleAccountAction(
 private fun AccountListContent(
     uiState: AccountListUiState,
     onAccountClick: (Long) -> Unit,
-    onAccountLongClick: (Long, AccountState, IntOffset) -> Unit,
+    onAccountAction: (Long, Int) -> Unit,
     onAddClick: () -> Unit,
     onMenuClick: () -> Unit,
     onTotalClick: () -> Unit,
@@ -245,7 +234,7 @@ private fun AccountListContent(
                     AccountList(
                         accounts = screenState.data.accounts,
                         onAccountClick = onAccountClick,
-                        onAccountLongClick = onAccountLongClick
+                        onAccountAction = onAccountAction
                     )
                 }
                 is AccountListScreenState.Error -> {
