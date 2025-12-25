@@ -467,6 +467,8 @@ The modern implementation uses:
 
 ## References
 
+- Use case overview: [docs/Usecase_Module.md](Usecase_Module.md)
+- Repository overview: [docs/Repository_Module.md](Repository_Module.md)
 - Legacy Implementation: `legacy-app/src/main/java/.../AccountListActivity.java`
 - Architecture Guidelines: [CODING_PRINCIPLES.md](./CODING_PRINCIPLES.md)
 - Project Instructions: [.github/copilot-instructions.md](../.github/copilot-instructions.md)
