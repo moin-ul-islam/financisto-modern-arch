@@ -13,7 +13,8 @@ The `:usecase` module houses business logic between ViewModels and repositories 
 - `modern/AccountUseCases.kt` — CRUD and fetch flows for accounts.
 - `modern/AccountBalanceUseCases.kt` — balance rebuild for a single account, updating running balances and stored totals.
 - `modern/CategoryHierarchyUseCases.kt` — category tree retrieval, subtree exclusion, insert, and placeholder move logic.
-- `modern/CurrencyUseCases.kt` — CRUD for currencies with duplicate-name guard on create.
+- `modern/CurrencyUseCases.kt` — CRUD for currencies with duplicate-name guard on create; home currency management.
+- `modern/ExchangeRateUseCases.kt` — exchange rate retrieval, currency conversion, and home currency total calculation.
 - `modern/ReferenceUseCases.kt` — payee and project CRUD wrappers.
 - `modern/RunningBalanceUseCases.kt` — rebuild running balances per account or all accounts; fetch balances at a time or last balance.
 - `modern/TransactionUseCases.kt` — CRUD, queries, templates, search stub, and creation with balance updates.
@@ -32,7 +33,8 @@ The `:usecase` module houses business logic between ViewModels and repositories 
 - **AccountUseCases:** Get all accounts (one-shot or `Flow`), fetch by ID, create/update/delete with `Result` wrapping. Used by account UI features such as [docs/Feature_Account_List.md](docs/Feature_Account_List.md).
 - **AccountBalanceUseCases:** Recalculate a single account’s running balances and stored total, skipping splits and zero amounts; updates `totalAmount` in `AccountRepository`.
 - **CategoryHierarchyUseCases:** Retrieves category trees with level metadata; subtree exclusion uses left/right bounds; move operation is currently a placeholder that returns success without mutations.
-- **CurrencyUseCases:** CRUD plus duplicate-name check on create; delete fetches the entity before removal.
+- **CurrencyUseCases:** CRUD plus duplicate-name check on create; delete fetches the entity before removal; includes home currency management with `GetHomeCurrencyUseCase` (returns first currency where `isDefault=true`, also provides reactive `Flow`) and `SetHomeCurrencyUseCase` (sets specified currency as default, unsets all others).
+- **ExchangeRateUseCases:** Currency conversion infrastructure with `GetLatestExchangeRateUseCase` (currently returns 1.0 for same currency, needs repository integration for cross-currency rates), `ConvertCurrencyUseCase` (applies exchange rate to amount, returns null if rate unavailable), and `CalculateTotalInHomeCurrencyUseCase` (sums account balances in home currency, tracks unconverted accounts, filters by `includeInTotals` flag).
 - **ReferenceUseCases:** Basic payee/project fetch and create; always marks new records active.
 - **RunningBalanceUseCases:** Rebuilds running balances per account and all accounts; fetches last balance or balance at timestamp. Logic filters self-transfers and handles split transfer direction.
 - **TransactionUseCases:** CRUD plus filters (account, date range, category), templates, search stub, and creation that triggers balance recalculation for affected accounts via `RecalculateAccountBalanceUseCase`.
@@ -41,10 +43,11 @@ The `:usecase` module houses business logic between ViewModels and repositories 
 ## Status and Gaps
 
 - No DI binding module exists beyond the placeholder `UseCaseModule.kt`; Hilt modules may be required to expose use cases to consumers.
-- No unit tests under `:usecase` despite `testImplementation` dependency in the Gradle file.
+- Limited unit test coverage under `:usecase`; new currency and exchange rate use cases have tests.
 - Move category logic is stubbed; search and multi-field queries are minimal; transaction templates reuse repository-only data.
 - Running balance rebuild and transaction upsert mirror legacy behavior but lack explicit validation or conflict handling.
 - Module depends on repository entities directly; future domain models may require conversion layers.
+- Exchange rate use cases ready but need repository integration for actual rate data.
 
 ## Integration Notes
 

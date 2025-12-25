@@ -60,6 +60,7 @@ data class AccountListItem(
     val balance: String,
     val formattedBalance: String,
     val currencySymbol: String,
+    val currencyId: Long, // Added for currency conversion
     val accountType: String,
     val iconResId: Int,
     val isActive: Boolean,

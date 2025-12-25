@@ -55,7 +55,10 @@ SQLite Database
 
 3. **Total Balance Card**
    - Card renders at the top of the list
-   - ⚠️ Currently always shows `$0.00` because list items leave `balanceAmount` at zero even though the ViewModel computes totals separately
+   - Displays total balance in home currency
+   - Properly sums account balances with currency conversion support
+   - Shows "Set Home Currency" message if no home currency is configured
+   - Shows warning if some accounts couldn't be converted (missing exchange rates)
    - Total calculation state tracking (Idle, Calculating, Completed, Failed)
 
 4. **Account Actions**
@@ -95,10 +98,13 @@ SQLite Database
 
 1. **Currency Handling**
    - Currency symbols are loaded and displayed
-   - Currency formatting works via domain model
+   - Currency formatting with proper symbol format (RS, LS, RSP, LSP)
    - In-memory currency cache to avoid repeated DB calls
-   - ⚠️ **Missing:** Multi-currency total warnings
-   - ⚠️ **Missing:** Proper currency conversion for totals
+   - Home currency support for total calculation
+   - Currency conversion infrastructure in place
+   - Each account stores its currency ID for conversion
+   - ✅ **Implemented:** Home currency based totals
+   - ⚠️ **Partial:** Exchange rate conversion (infrastructure ready, needs repository integration)
 
 2. **Account Type Icons**
    - Icon/color system exists in UI
@@ -159,15 +165,18 @@ feature/account/
 ├── AccountActionCalloutItem.kt     # Action menu data models
 ├── AccountActionCalloutUtils.kt    # Action menu creation logic
 ├── ui/
-│   ├── AccountListScreen.kt        # Main screen composable
+│   ├── AccountListScreen.kt        # Main screen composable with FAB
 │   └── components/
 │       ├── AccountList.kt          # List with bottom sheet
 │       ├── AccountListItem.kt      # Individual account card
 │       ├── TotalBalanceCard.kt     # Total balance header
-│       ├── BottomToolbar.kt        # Bottom action bar
 │       ├── AccountActionCallout.kt # Action bottom sheet
 │       ├── StateComponents.kt      # Loading, empty, error states
 │       └── IntegrityErrorBanner.kt # Error overlay banner
+
+usecase/src/main/kotlin/.../modern/
+├── CurrencyUseCases.kt             # Home currency management
+└── ExchangeRateUseCases.kt         # Exchange rate and conversion
 ```
 
 ## Data Models
@@ -209,6 +218,7 @@ data class AccountListItem(
     val balance: String,
     val formattedBalance: String,
     val currencySymbol: String,
+    val currencyId: Long,          // For currency conversion
     val accountType: String,
     val iconResId: Int,
     val isActive: Boolean,
@@ -217,6 +227,7 @@ data class AccountListItem(
     val formattedLastTransactionDate: String,
     val transactionCount: Int,  // Currently hardcoded to 0
     val note: String,
+    val balanceAmount: Long = 0L,  // Raw amount for calculations
     // Additional UI-specific fields...
 )
 ```
@@ -258,12 +269,15 @@ The ViewModel depends on the following use cases:
 3. **DeleteAccountUseCase** - Deletes an account
 4. **UpdateAccountUseCase** - Updates account properties
 5. **GetCurrencyByIdUseCase** - Retrieves currency information
-6. **GetCurrenciesUseCase** - Gets all currencies (injected but not actively used)
+6. **GetHomeCurrencyUseCase** - Gets the default/home currency
+7. **CalculateTotalInHomeCurrencyUseCase** - Calculates total with currency conversion
 
 ### Missing Use Cases
 
 - **GetTransactionCountByAccountUseCase** - Would provide transaction counts
-- **GetAccountTotalsUseCase** - Would calculate multi-currency totals
+- **GetLatestExchangeRateUseCase** - Partially implemented, needs repository integration
+- **ConvertCurrencyUseCase** - Implemented, depends on exchange rates
+- **SetHomeCurrencyUseCase** - Implemented, allows setting default currency
 - **IntegrityCheckUseCase** - Would verify database integrity
 - **PurgeAccountUseCase** - Would delete old transactions
 
@@ -296,12 +310,15 @@ Modern card design with:
 - Long-press gesture for actions
 - Disabled appearance for closed accounts
 
-### BottomToolbar
+### Floating Action Button (FAB)
 
-Fixed bottom bar with:
-- Total balance display (tappable)
-- Add button (FAB-style)
-- Menu button (not yet functional)
+Material 3 FAB for creating accounts:
+- Positioned as per Material Design guidelines
+- Uses `primaryContainer` color scheme
+- Shows "+" icon
+- Navigates to Create Account screen
+
+**Note:** The bottom toolbar with total display, add button, and menu button has been removed in favor of the FAB and total in the header card.
 
 ## Navigation Integration
 
@@ -338,11 +355,19 @@ NavHost(navController, startDestination = "account_list") {
 
 ### Total Calculation
 
-1. Filters accounts where `isIncludeIntoTotals = true`
-2. Sums all balances
-3. Formats total using currency formatting
-4. Updates `totalCalculationState`
-5. **Note:** Current implementation doesn't handle multi-currency properly (uses default currency)
+1. Gets the home currency using `GetHomeCurrencyUseCase`
+2. Prepares account balances with currency information
+3. Uses `CalculateTotalInHomeCurrencyUseCase` to:
+   - Filter accounts where `isIncludeIntoTotals = true`
+   - Convert each account balance to home currency using exchange rates
+   - Sum all converted balances
+   - Track accounts that couldn't be converted (missing exchange rates)
+4. Formats total according to home currency formatting rules (symbol, decimals, separators)
+5. Updates `totalCalculationState` and displays result
+6. Shows "Set Home Currency" if no home currency is configured
+7. Shows warning if some accounts couldn't be converted
+
+**Note:** Exchange rate repository integration pending. Currently, only same-currency accounts are summed.
 
 ### Account Deletion
 
@@ -369,13 +394,15 @@ NavHost(navController, startDestination = "account_list") {
 1. **No Tests** - Feature has no unit or UI tests
 2. **Transaction Count** - Always shows 0, needs use case implementation
 3. **Account Type Mapping** - Using placeholder icons and capitalized type strings
+4. **Exchange Rate Integration** - Infrastructure in place but needs repository connection
 
 ### Important
 
-4. **Multi-Currency Totals** - Total calculation assumes single currency
-5. **Credit Card Features** - Credit utilization not calculated
-6. **Integrity Check** - Not implemented
-7. **Account Totals Screen** - Navigation defined but screen doesn't exist
+5. **Home Currency Selection UI** - Use case exists but needs settings screen
+6. **Exchange Rate Management** - Needs UI for viewing/editing rates
+7. **Credit Card Features** - Credit utilization not calculated
+8. **Integrity Check** - Not implemented
+9. **Account Totals Screen** - Navigation defined but screen doesn't exist
 
 ### Nice to Have
 
@@ -464,6 +491,59 @@ The modern implementation uses:
 - **[Create Transaction](./Feature_Create_Transaction.md)** - Create and edit transactions
 - **Account Totals** (Not yet implemented)
 - **Blotter/Transaction List** ([feature/blotter](../feature/blotter))
+
+## Recent Improvements (December 25, 2025)
+
+### Home Currency and Exchange Rate Support
+
+Added comprehensive support for multi-currency accounts with home currency conversion:
+
+**New Use Cases**:
+- **GetHomeCurrencyUseCase**: Retrieves the currency marked as default/home
+- **SetHomeCurrencyUseCase**: Sets a specific currency as the home currency (only one allowed)
+- **GetLatestExchangeRateUseCase**: Gets exchange rates between currencies (infrastructure ready)
+- **ConvertCurrencyUseCase**: Converts amounts between currencies using rates
+- **CalculateTotalInHomeCurrencyUseCase**: Calculates total balance across all accounts in home currency
+
+**Implementation Details**:
+- Each `AccountListItem` now includes `currencyId` and `balanceAmount` fields
+- ViewModel properly converts account balances to home currency
+- Formatting respects currency rules (symbol position, decimals, separators)
+- Shows "Set Home Currency" message if no home currency is configured
+- Tracks accounts that couldn't be converted due to missing exchange rates
+- Displays warnings when conversion issues occur
+
+**Exchange Rate Infrastructure**:
+- Data models and DAOs already exist in repository
+- Use cases created and integrated
+- Awaiting repository integration for full functionality
+- Currently works for same-currency totals
+
+### UI Layout Improvements
+
+**Removed**:
+- Bottom toolbar with redundant total display
+- Bottom add button
+- Bottom menu button (non-functional)
+
+**Added**:
+- **Floating Action Button (FAB)** for creating accounts
+  - Material 3 design with primary color scheme
+  - Positioned using Scaffold layout
+  - Shows "+" icon for intuitive action
+
+**Updated**:
+- AccountListScreen now uses Scaffold with proper FAB positioning
+- Total balance only shown in TotalBalanceCard at top (no redundancy)
+- Cleaner, more modern layout following Material Design guidelines
+
+### Currency Formatting
+
+Enhanced currency formatting in ViewModel:
+- Symbol format support: RS (right), LS (left), RSP (right with space), LSP (left with space)
+- Proper decimal places (0-4)
+- Correct handling of negative amounts
+- Formatted using home currency for totals
 
 ## References
 

@@ -7,8 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -83,86 +88,97 @@ fun AccountListScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AccountListContent(
-                uiState = uiState,
-                onAccountClick = { accountId ->
-                    onNavigateToBlotter(accountId)
-                },
-                onAccountAction = { accountId, actionIndex ->
-                    val account = uiState.screenState.let { state ->
-                        if (state is AccountListScreenState.Content) {
-                            state.data.accounts.find { it.id == accountId }
-                        } else {
-                            null
-                        }
-                    }
-                    account?.let { acc ->
-                        val actions = AccountActionCalloutUtils.createAccountActions(acc.isActive)
-                        if (actionIndex < actions.size) {
-                            val action = actions[actionIndex].action
-                            handleAccountAction(
-                                action = action,
-                                accountId = accountId,
-                                viewModel = viewModel,
-                                onNavigateToAccountDetails = onNavigateToAccountDetails,
-                                onNavigateToBlotter = onNavigateToBlotter,
-                                onNavigateToEditAccount = onNavigateToEditAccount,
-                                onNavigateToAddTransaction = onNavigateToAddTransaction,
-                                onNavigateToAddTransfer = onNavigateToAddTransfer,
-                                onNavigateToUpdateBalance = onNavigateToUpdateBalance,
-                                onNavigateToPurgeAccount = onNavigateToPurgeAccount
-                            )
-                        }
-                    }
-                },
-                onAddClick = {
-                    viewModel.handleAction(AccountListAction.CreateNewAccount)
-                    onNavigateToCreateAccount()
-                },
-                onMenuClick = {
-                    // Handle menu popup - this will be implemented later
-                },
-                onTotalClick = {
-                    viewModel.handleAction(AccountListAction.ViewAccountTotals)
-                    onNavigateToAccountTotals()
-                },
-                onRetryClick = {
-                    viewModel.handleAction(AccountListAction.RetryLoading)
-                },
-                onDismissIntegrityError = {
-                    viewModel.handleAction(AccountListAction.DismissIntegrityError)
-                }
-            )
-            
-            // Account Info Dialog
-            uiState.accountInfoData?.let { accountInfo ->
-                if (uiState.showAccountInfoDialog) {
-                    AccountInfoDialog(
-                        accountInfo = accountInfo,
-                        onDismiss = {
-                            viewModel.handleAction(AccountListAction.DismissAccountInfoDialog)
-                        },
-                        onEditClick = { accountId ->
-                            viewModel.handleAction(AccountListAction.DismissAccountInfoDialog)
-                            onNavigateToEditAccount(accountId)
-                        }
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.handleAction(AccountListAction.CreateNewAccount)
+                        onNavigateToCreateAccount()
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Account"
                     )
                 }
             }
-            
-            // Delete Confirmation Dialog
-            uiState.accountToDelete?.let { accountToDelete ->
-                if (uiState.showDeleteConfirmDialog) {
-                    DeleteAccountConfirmDialog(
-                        accountName = accountToDelete.title,
-                        onConfirm = {
-                            viewModel.handleAction(AccountListAction.ConfirmDeleteAccount(accountToDelete.id))
-                        },
-                        onDismiss = {
-                            viewModel.handleAction(AccountListAction.DismissDeleteConfirmDialog)
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                AccountListContent(
+                    uiState = uiState,
+                    onAccountClick = { accountId ->
+                        onNavigateToBlotter(accountId)
+                    },
+                    onAccountAction = { accountId, actionIndex ->
+                        val account = uiState.screenState.let { state ->
+                            if (state is AccountListScreenState.Content) {
+                                state.data.accounts.find { it.id == accountId }
+                            } else {
+                                null
+                            }
                         }
-                    )
+                        account?.let { acc ->
+                            val actions = AccountActionCalloutUtils.createAccountActions(acc.isActive)
+                            if (actionIndex < actions.size) {
+                                val action = actions[actionIndex].action
+                                handleAccountAction(
+                                    action = action,
+                                    accountId = accountId,
+                                    viewModel = viewModel,
+                                    onNavigateToAccountDetails = onNavigateToAccountDetails,
+                                    onNavigateToBlotter = onNavigateToBlotter,
+                                    onNavigateToEditAccount = onNavigateToEditAccount,
+                                    onNavigateToAddTransaction = onNavigateToAddTransaction,
+                                    onNavigateToAddTransfer = onNavigateToAddTransfer,
+                                    onNavigateToUpdateBalance = onNavigateToUpdateBalance,
+                                    onNavigateToPurgeAccount = onNavigateToPurgeAccount
+                                )
+                            }
+                        }
+                    },
+                    onRetryClick = {
+                        viewModel.handleAction(AccountListAction.RetryLoading)
+                    },
+                    onDismissIntegrityError = {
+                        viewModel.handleAction(AccountListAction.DismissIntegrityError)
+                    }
+                )
+                
+                // Account Info Dialog
+                uiState.accountInfoData?.let { accountInfo ->
+                    if (uiState.showAccountInfoDialog) {
+                        AccountInfoDialog(
+                            accountInfo = accountInfo,
+                            onDismiss = {
+                                viewModel.handleAction(AccountListAction.DismissAccountInfoDialog)
+                            },
+                            onEditClick = { accountId ->
+                                viewModel.handleAction(AccountListAction.DismissAccountInfoDialog)
+                                onNavigateToEditAccount(accountId)
+                            }
+                        )
+                    }
+                }
+                
+                // Delete Confirmation Dialog
+                uiState.accountToDelete?.let { accountToDelete ->
+                    if (uiState.showDeleteConfirmDialog) {
+                        DeleteAccountConfirmDialog(
+                            accountName = accountToDelete.title,
+                            onConfirm = {
+                                viewModel.handleAction(AccountListAction.ConfirmDeleteAccount(accountToDelete.id))
+                            },
+                            onDismiss = {
+                                viewModel.handleAction(AccountListAction.DismissDeleteConfirmDialog)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -214,59 +230,40 @@ private fun AccountListContent(
     uiState: AccountListUiState,
     onAccountClick: (Long) -> Unit,
     onAccountAction: (Long, Int) -> Unit,
-    onAddClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    onTotalClick: () -> Unit,
     onRetryClick: () -> Unit,
     onDismissIntegrityError: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Main content area
-        Box(modifier = Modifier.weight(1f)) {
-            when (val screenState = uiState.screenState) {
-                is AccountListScreenState.Loading -> {
-                    LoadingIndicator()
-                }
-                is AccountListScreenState.Empty -> {
-                    EmptyState()
-                }
-                is AccountListScreenState.Content -> {
-                    AccountList(
-                        accounts = screenState.data.accounts,
-                        onAccountClick = onAccountClick,
-                        onAccountAction = onAccountAction
-                    )
-                }
-                is AccountListScreenState.Error -> {
-                    ErrorState(
-                        message = screenState.message,
-                        canRetry = screenState.canRetry,
-                        onRetryClick = onRetryClick
-                    )
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (val screenState = uiState.screenState) {
+            is AccountListScreenState.Loading -> {
+                LoadingIndicator()
             }
-            
-            // Integrity error overlay
-            if (uiState.showIntegrityError) {
-                IntegrityErrorBanner(
-                    onDismiss = onDismissIntegrityError
+            is AccountListScreenState.Empty -> {
+                EmptyState()
+            }
+            is AccountListScreenState.Content -> {
+                AccountList(
+                    accounts = screenState.data.accounts,
+                    totalBalance = screenState.data.totalBalance,
+                    onAccountClick = onAccountClick,
+                    onAccountAction = onAccountAction
+                )
+            }
+            is AccountListScreenState.Error -> {
+                ErrorState(
+                    message = screenState.message,
+                    canRetry = screenState.canRetry,
+                    onRetryClick = onRetryClick
                 )
             }
         }
         
-        // Bottom toolbar
-        val totalText = when (val screenState = uiState.screenState) {
-            is AccountListScreenState.Content -> screenState.data.totalBalance
-            else -> ""
+        // Integrity error overlay
+        if (uiState.showIntegrityError) {
+            IntegrityErrorBanner(
+                onDismiss = onDismissIntegrityError
+            )
         }
-        
-        BottomToolbar(
-            totalText = totalText,
-            showMenuButton = uiState.showMenuButton,
-            onAddClick = onAddClick,
-            onMenuClick = onMenuClick,
-            onTotalClick = onTotalClick
-        )
     }
 }
 

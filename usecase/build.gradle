@@ -42,5 +42,8 @@ dependencies {
     implementation libs.bundles.rxjava.bundle
     
     // Testing
-    testImplementation libs.junit
+    testImplementation libs.bundles.testing.modern
+    
+    // For Hilt testing annotation processor
+    kaptTest libs.hilt.compiler
 }

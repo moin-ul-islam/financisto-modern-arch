@@ -33,14 +33,11 @@ import ru.orangesoftware.financisto.feature.account.AccountListItem
 @Composable
 fun AccountList(
     accounts: List<AccountListItem>,
+    totalBalance: String,
     onAccountClick: (Long) -> Unit,
     onAccountAction: (Long, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Calculate total balance from all accounts
-    val totalBalance = accounts.sumOf { it.balanceAmount }
-    val formattedTotal = formatBalance(totalBalance)
-    
     // State for bottom sheet
     var selectedAccountId by remember { mutableStateOf<Long?>(null) }
     var selectedAccountActions by remember { mutableStateOf<List<AccountActionCalloutItem>>(emptyList()) }
@@ -54,9 +51,9 @@ fun AccountList(
         // Total Balance Card at the top
         item(key = "total_balance") {
             TotalBalanceCard(
-                totalBalance = formattedTotal,
+                totalBalance = totalBalance,
                 monthlyChange = "", // Can be calculated from transactions
-                isPositiveChange = totalBalance >= 0
+                isPositiveChange = !totalBalance.contains("-")
             )
             Spacer(modifier = Modifier.height(Spacing.Small))
         }
@@ -104,13 +101,4 @@ fun AccountList(
             )
         }
     }
-}
-
-/**
- * Helper function to format balance amount
- */
-private fun formatBalance(amount: Long): String {
-    val absAmount = kotlin.math.abs(amount) / 100.0
-    val sign = if (amount < 0) "-" else ""
-    return String.format("%s$%,.2f", sign, absAmount)
 }

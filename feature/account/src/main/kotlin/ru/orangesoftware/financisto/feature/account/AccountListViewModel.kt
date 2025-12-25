@@ -19,6 +19,8 @@ import ru.orangesoftware.financisto.usecase.modern.DeleteAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetCurrenciesUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetCurrencyByIdUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetHomeCurrencyUseCase
+import ru.orangesoftware.financisto.usecase.modern.CalculateTotalInHomeCurrencyUseCase
 import javax.inject.Inject
 
 /**
@@ -39,6 +41,8 @@ class AccountListViewModel @Inject constructor(
     private val deleteAccountUseCase: DeleteAccountUseCase,
     private val updateAccountUseCase: UpdateAccountUseCase,
     private val getCurrencyByIdUseCase: GetCurrencyByIdUseCase,
+    private val getHomeCurrencyUseCase: GetHomeCurrencyUseCase,
+    private val calculateTotalInHomeCurrencyUseCase: CalculateTotalInHomeCurrencyUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -123,6 +127,7 @@ class AccountListViewModel @Inject constructor(
                         balance = account.totalAmount.toString(),
                         formattedBalance = formattedBalance,
                         currencySymbol = currencySymbol,
+                        currencyId = account.currencyId, // Include currency ID
                         accountType = getAccountTypeDisplayName(account.type),
                         iconResId = getAccountTypeIcon(account.type),
                         isActive = account.isActive,
@@ -130,7 +135,8 @@ class AccountListViewModel @Inject constructor(
                         lastTransactionDate = account.lastTransactionDate,
                         formattedLastTransactionDate = formatDate(account.lastTransactionDate),
                         transactionCount = 0, // TODO: Get actual transaction count from use case
-                        note = account.note ?: ""
+                        note = account.note ?: "",
+                        balanceAmount = account.totalAmount // Add raw balance amount
                     )
                 }
                 
@@ -355,15 +361,56 @@ class AccountListViewModel @Inject constructor(
                 // Get current accounts from content state
                 val currentState = _uiState.value.screenState
                 if (currentState is AccountListScreenState.Content) {
-                    val totalBalance = calculateTotalBalance(currentState.data.accounts)
-                    val updatedContentData = currentState.data.copy(totalBalance = totalBalance)
-                    _uiState.value = _uiState.value.copy(
-                        totalCalculationState = TotalCalculationState.Completed(
-                            total = totalBalance,
-                            warningMessage = null // TODO: Add currency warnings if needed
-                        ),
-                        screenState = AccountListScreenState.Content(updatedContentData)
-                    )
+                    // Get home currency
+                    val homeCurrency = getHomeCurrencyUseCase.execute()
+                    
+                    if (homeCurrency != null) {
+                        // Prepare account balances for calculation
+                        val accountBalances = currentState.data.accounts.map { account ->
+                            CalculateTotalInHomeCurrencyUseCase.AccountBalance(
+                                amount = account.balance.toLongOrNull() ?: 0L,
+                                currencyId = getCurrencyIdForAccount(account),
+                                includeInTotals = account.isIncludeIntoTotals
+                            )
+                        }
+                        
+                        // Calculate total in home currency
+                        val totalResult = calculateTotalInHomeCurrencyUseCase.execute(accountBalances)
+                        
+                        if (totalResult != null) {
+                            val formattedTotal = formatAmountWithCurrency(totalResult.total, homeCurrency)
+                            val warningMessage = if (totalResult.hasConversionWarnings) {
+                                "Some accounts could not be converted. Exchange rates may be missing."
+                            } else null
+                            
+                            val updatedContentData = currentState.data.copy(totalBalance = formattedTotal)
+                            _uiState.value = _uiState.value.copy(
+                                totalCalculationState = TotalCalculationState.Completed(
+                                    total = formattedTotal,
+                                    warningMessage = warningMessage
+                                ),
+                                screenState = AccountListScreenState.Content(updatedContentData)
+                            )
+                        } else {
+                            // No home currency set
+                            _uiState.value = _uiState.value.copy(
+                                totalCalculationState = TotalCalculationState.Completed(
+                                    total = "Set Home Currency",
+                                    warningMessage = "Please set a home currency in settings"
+                                )
+                            )
+                        }
+                    } else {
+                        // No home currency set
+                        val updatedContentData = currentState.data.copy(totalBalance = "Set Home Currency")
+                        _uiState.value = _uiState.value.copy(
+                            totalCalculationState = TotalCalculationState.Completed(
+                                total = "Set Home Currency",
+                                warningMessage = "Please set a home currency in settings"
+                            ),
+                            screenState = AccountListScreenState.Content(updatedContentData)
+                        )
+                    }
                 } else {
                     _uiState.value = _uiState.value.copy(
                         totalCalculationState = TotalCalculationState.Completed(
@@ -442,11 +489,24 @@ class AccountListViewModel @Inject constructor(
         return android.R.drawable.ic_menu_save
     }
 
-    private suspend fun calculateTotalBalance(accounts: List<AccountListItem>): String {
-        val total = accounts
-            .filter { it.isIncludeIntoTotals }
-            .sumOf { it.balance.toLongOrNull() ?: 0L }
-        return formatAmount(total, 1) // Default currency for now
+    private suspend fun getCurrencyIdForAccount(account: AccountListItem): Long {
+        // Currency ID is now stored directly in AccountListItem
+        return account.currencyId
+    }
+    
+    private fun formatAmountWithCurrency(amount: Long, currency: ru.orangesoftware.financisto.data.model.CurrencyEntity): String {
+        // Format the amount using currency formatting rules
+        val absAmount = kotlin.math.abs(amount) / 100.0
+        val sign = if (amount < 0) "-" else ""
+        val formattedAmount = String.format("%.${currency.decimals}f", absAmount)
+        
+        return when {
+            currency.symbolFormat == "RS" -> "$sign${currency.symbol}$formattedAmount"
+            currency.symbolFormat == "LS" -> "$sign$formattedAmount${currency.symbol}"
+            currency.symbolFormat == "RSP" -> "$sign${currency.symbol} $formattedAmount"
+            currency.symbolFormat == "LSP" -> "$sign$formattedAmount ${currency.symbol}"
+            else -> "$sign${currency.symbol}$formattedAmount"
+        }
     }
 
     private fun sortAccounts(accounts: List<AccountListItem>, sortOrder: AccountSortOrder): List<AccountListItem> {
