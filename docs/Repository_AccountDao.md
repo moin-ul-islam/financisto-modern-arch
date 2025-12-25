@@ -9,19 +9,27 @@ DAO definition: [repository/src/main/java/ru/orangesoftware/financisto/data/dao/
 
 ## Responsibilities
 
-- CRUD for accounts plus balance/last-transaction updates.
-- Reactive and one-shot retrieval of active accounts, totals-included accounts, and search by title.
+- Full reactive and non-reactive CRUD for accounts.
+- Filtering for accounts included in totals.
+- Balance and last transaction date updates.
 
 ## Key Operations
 
-- `getAllAccountsFlow()` / `getAllAccounts()` return active accounts ordered by sort/title.
-- `getAccountsIncludedInTotals()` filters by `is_include_into_totals`.
-- `updateAccountBalance(accountId, amount, lastTransactionDate)` writes totals and last activity.
-- `searchAccounts(query)` performs LIKE search on titles.
+- `getAllAccountsFlow()`: Reactive `Flow` of all active accounts, ordered by `sort_order` and `title`.
+- `getAllAccounts()`: One-time fetch of all active accounts.
+- `getAccountById(accountId)`: Fetches a single account by its ID.
+- `getAccountsIncludedInTotals()`: Retrieves all active accounts that are included in totals.
+- `insertAccount(account)`: Inserts a new account and returns its ID.
+- `updateAccount(account)`: Updates an existing account.
+- `deleteAccount(account)` / `deleteAccountById(accountId)`: Removes an account.
+- `updateAccountBalance(accountId, amount, lastTransactionDate)`: Updates the total amount and last transaction date for an account.
+- `getAccountCount()`: Returns the total number of active accounts.
+- `searchAccounts(query)`: Searches for active accounts with a title matching the query.
 
 ## Notes
 
-- All queries filter to active accounts except ID-based lookups and deletes.
+- Most queries filter for `is_active = 1`. Direct lookups by ID do not.
+- Balance updates are manual and must be triggered by the caller (e.g., a use case).
 - Used by `AccountRepositoryImpl` and cascading use cases (e.g., account list feature).
 
 ## Related Documentation

@@ -9,25 +9,38 @@ DAO definition: [repository/src/main/java/ru/orangesoftware/financisto/data/dao/
 
 ## Responsibilities
 
-- Comprehensive transaction access: CRUD, filters, blotter queries, split handling, templates, search, and running-balance feeds.
-- Provides both reactive and one-shot retrievals.
+- Full reactive and non-reactive CRUD for transactions.
+- Complex filtering by account, date range, category, and note.
+- Queries for transaction templates.
+- Support for split transactions via `TransactionWithSplits`.
+- Specialized queries for running balance calculations and blotter views.
 
 ## Key Operations
 
-- Listings: `getAllTransactionsFlow()`, `getAllTransactions()` (non-templates) ordered by datetime DESC.
-- Account filters: `getTransactionsForAccountFlow(accountId)` and suspend variant.
-- Range/category filters: `getTransactionsByDateRange(start, end)`, `getTransactionsByCategory(categoryId)`.
-- Aggregates: `getTotalAmountForAccount(accountId, start, end)`, `getTransactionCountForAccount(accountId)`.
-- Running balance feed: `getTransactionsForRunningBalance(accountId)` ordered by datetime ASC then id.
-- Splits: `getTransactionWithSplits(id)`, `getSplitTransactions(parentId)` (+ Flow), `deleteSplitTransactions(parentId)`, helpers `isSplitParent`, `isSplitChild`, `getAllSplitParents()`.
-- Blotter: `getBlotterTransactions()` / Flow for parent-only items.
-- Templates/search: `getTransactionTemplates()`, `searchTransactionsByNote(query)`.
+- `getAllTransactionsFlow()`: Reactive `Flow` of all transactions (including templates).
+- `getAllTransactions()`: One-time fetch of all non-template transactions.
+- `getTransactionsForAccountFlow(accountId)` / `getTransactionsForAccount(accountId)`: Reactive and one-time fetch of transactions for a specific account.
+- `getTransactionById(transactionId)`: Fetches a single transaction by its ID.
+- `getTransactionsByDateRange(startDate, endDate)`: Fetches transactions within a date range.
+- `getTransactionsByCategory(categoryId)`: Fetches transactions for a specific category.
+- `insertTransaction(transaction)`: Inserts a new transaction and returns its ID.
+- `updateTransaction(transaction)`: Updates an existing transaction.
+- `deleteTransaction(transaction)` / `deleteTransactionById(transactionId)`: Removes a transaction.
+- `getTransactionTemplates()`: Fetches all transaction templates.
+- `getTotalAmountForAccount(accountId, startDate, endDate)`: Calculates the net amount change for an account in a date range.
+- `getTransactionCountForAccount(accountId)`: Counts the number of transactions for an account.
+- `searchTransactionsByNote(query)`: Searches for transactions with a note matching the query.
+- `getTransactionsForRunningBalance(accountId)`: Fetches transactions for an account, ordered correctly for running balance calculation.
+- `getTransactionsWithSplits(transactionId)`: Fetches a transaction and its splits.
+- `getSplitCount(transactionId)`: Counts the number of splits for a transaction.
+- `getBlotterEntries(...)`: A complex query to fetch a list of transactions for the main blotter screen, with various filtering options.
 
 ## Notes
 
-- Templates are excluded from most business queries via `is_template = 0` checks.
-- Split parents use `parent_id = 0`; child splits share parent id and may carry category_id = -1 in blotter contexts.
-- Ordering for running balance is ascending to support cumulative processing.
+- The `getAllTransactionsFlow()` method **includes templates**, while `getAllTransactions()` and most other queries explicitly filter for `is_template = 0`. This is a key distinction.
+- The `TransactionWithSplits` data class is used to model parent-child relationships for split transactions.
+- The `getBlotterEntries` query is highly complex and forms the backbone of the main transaction list UI. It joins multiple tables and supports filtering by account, category, project, payee, and more.
+- The `getTransactionsForRunningBalance` query has a specific ordering (`datetime ASC`, `_id ASC`) that is critical for correct balance calculation.
 
 ## Related Documentation
 

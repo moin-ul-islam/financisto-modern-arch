@@ -9,19 +9,26 @@ DAO definition: [repository/src/main/java/ru/orangesoftware/financisto/data/dao/
 
 ## Responsibilities
 
-- CRUD for currencies, default currency lookup, and duplicate-name checks.
-- Reactive and one-shot list retrieval ordered by name.
+- Full reactive and non-reactive CRUD for currencies.
+- Lookup for default currency.
+- Duplicate name check.
 
 ## Key Operations
 
-- `getAllCurrenciesFlow()` / `getAllCurrencies()` for listing.
-- `getDefaultCurrency()` returns first `is_default = 1`.
-- `currencyExistsByName(name)` supports validation prior to inserts.
+- `getAllCurrenciesFlow()`: Reactive `Flow` of all currencies, ordered by name.
+- `getAllCurrencies()`: One-time fetch of all currencies.
+- `getCurrencyById(currencyId)`: Fetches a single currency by its ID.
+- `getDefaultCurrency()`: Retrieves the default currency.
+- `insertCurrency(currency)`: Inserts a new currency and returns its ID.
+- `updateCurrency(currency)`: Updates an existing currency.
+- `deleteCurrency(currency)`: Removes a currency.
+- `currencyExistsByName(name)`: Checks if a currency with the given name already exists.
+- `getCurrenciesCount()`: Returns the total number of currencies.
 
 ## Notes
 
-- No cascading delete protections; callers must ensure currencies are not in use.
-- Used by currency use cases for formatting and account totals.
+- Unlike other DAOs, currency queries do not filter by an `is_active` flag, as it does not exist on the `currency` table.
+- The `is_default` flag is used to identify the single default currency.
 
 ## Related Documentation
 

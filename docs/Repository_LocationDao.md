@@ -9,20 +9,27 @@ DAO definition: [repository/src/main/java/ru/orangesoftware/financisto/data/dao/
 
 ## Responsibilities
 
-- CRUD for locations with reactive listing and payee-specific filters.
-- Maintains a `count` field via incremental updates.
+- Full reactive and non-reactive CRUD for locations.
+- Payee-specific filtering.
+- Usage counter maintenance via incremental updates.
 
 ## Key Operations
 
-- `getAllLocationsFlow()` / `getAllLocations()` for active locations ordered by sort/title.
-- `getPayeeLocations()` filters `is_payee = 1`.
-- `updateLocationCount(locationId, delta)` adjusts usage counters.
-- `searchLocations(query)` supports title search.
+- `getAllLocationsFlow()`: Reactive `Flow` of all active locations, ordered by `sort_order` and `title`.
+- `getAllLocations()`: One-time fetch of all active locations.
+- `getLocationById(locationId)`: Fetches a single location by its ID, ignoring active status.
+- `getPayeeLocations()`: Retrieves all active locations marked as payees.
+- `insertLocation(location)`: Inserts a new location and returns its ID.
+- `updateLocation(location)`: Updates an existing location.
+- `deleteLocation(location)` / `deleteLocationById(locationId)`: Removes a location.
+- `updateLocationCount(locationId, delta)`: Atomically adjusts the `count` field for a given location.
+- `searchLocations(query)`: Searches for active locations with a title matching the query.
+- `getLocationCount()`: Returns the total number of active locations.
 
 ## Notes
 
-- Active filtering applied to listings/search; ID lookups bypass it.
-- No transactional wrappers around count updates; callers should ensure consistency.
+- Most queries (`getAll`, `getPayee`, `search`, `getCount`) filter for `is_active = 1`. Direct lookups by ID (`getLocationById`) do not.
+- The `count` field is managed manually by the caller via `updateLocationCount`. There are no transactional guarantees at the DAO level to ensure consistency. Callers (use cases) are responsible for correct logic.
 
 ## Related Documentation
 

@@ -23,7 +23,7 @@ Implements the data layer for the modern app: Room entities/views, DAOs, reposit
 
 - Real migrations to replace `fallbackToDestructiveMigration()`.
 - Clear domain-model boundary to avoid leaking storage entities beyond repository implementations.
-- Tests for DAOs and repositories are absent; see TESTING_SETUP.md in module root.
+- Repository tests exist for Account, Category, Transaction, Currency, and Attribute repositories. DAO tests and remaining repository tests are needed; see TESTING_SETUP.md in module root for test configuration guidance.
 
 ## Related Documentation
 

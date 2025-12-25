@@ -9,20 +9,29 @@ DAO definition: [repository/src/main/java/ru/orangesoftware/financisto/data/dao/
 
 ## Responsibilities
 
-- CRUD for attributes and lookup by type, title search, and counts.
-- Provides AttributeView queries that join category metadata for nested-set hierarchy.
+- Full reactive and non-reactive CRUD for attributes.
+- Type-based filtering.
+- Queries against `v_attributes` view to get attributes linked with category information.
 
 ## Key Operations
 
-- `getAllAttributesFlow()` / `getAllAttributes()` return active attributes ordered by sort/title.
-- `getAttributesByType(type)` filters by attribute type.
-- View queries: `getAllAttributesWithCategories()`, `getAttributesForCategory(categoryId)`, `getAttributesForCategoryHierarchy(left, right)` pull from `v_attributes`.
-- Delete helpers for ID-based removal.
+- `getAllAttributesFlow()`: Reactive `Flow` of all active attributes.
+- `getAllAttributes()`: One-time fetch of all active attributes.
+- `getAttributeById(attributeId)`: Fetches a single attribute by its ID.
+- `getAttributesByType(type)`: Retrieves all active attributes of a specific type.
+- `insertAttribute(attribute)`: Inserts a new attribute and returns its ID.
+- `updateAttribute(attribute)`: Updates an existing attribute.
+- `deleteAttribute(attribute)` / `deleteAttributeById(attributeId)`: Removes an attribute.
+- `getAttributeCount()`: Returns the total number of active attributes.
+- `searchAttributes(query)`: Searches for active attributes with a title matching the query.
+- `getAllAttributesWithCategories()`: Fetches all attributes with their associated category information from the `v_attributes` view.
+- `getAttributesForCategory(categoryId)`: Fetches attributes for a specific category.
+- `getAttributesForCategoryHierarchy(left, right)`: Fetches attributes for categories within a nested set range.
 
 ## Notes
 
-- Uses `AttributeView` to surface category context; hierarchy bounds rely on nested-set left/right values.
-- Active filtering is applied to most list/search queries.
+- The `v_attributes` view joins `attributes` with `category_attribute` and `category` to provide denormalized data.
+- Standard queries filter for `is_active = 1`. View-based queries and direct ID lookups do not.
 
 ## Related Documentation
 
