@@ -17,10 +17,10 @@ import ru.orangesoftware.financisto.usecase.modern.GetAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.DeleteAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.UpdateAccountUseCase
-import ru.orangesoftware.financisto.usecase.modern.GetCurrenciesUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetCurrencyByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetHomeCurrencyUseCase
 import ru.orangesoftware.financisto.usecase.modern.CalculateTotalInHomeCurrencyUseCase
+import ru.orangesoftware.financisto.utils.CurrencyFormatter
 import javax.inject.Inject
 
 /**
@@ -369,7 +369,8 @@ class AccountListViewModel @Inject constructor(
                         val accountBalances = currentState.data.accounts.map { account ->
                             CalculateTotalInHomeCurrencyUseCase.AccountBalance(
                                 amount = account.balance.toLongOrNull() ?: 0L,
-                                currencyId = getCurrencyIdForAccount(account),
+                                currencyId =         // Currency ID is now stored directly in AccountListItem
+                                    account.currencyId,
                                 includeInTotals = account.isIncludeIntoTotals
                             )
                         }
@@ -378,7 +379,14 @@ class AccountListViewModel @Inject constructor(
                         val totalResult = calculateTotalInHomeCurrencyUseCase.execute(accountBalances)
                         
                         if (totalResult != null) {
-                            val formattedTotal = formatAmountWithCurrency(totalResult.total, homeCurrency)
+                            val formattedTotal =
+                                // Use the centralized CurrencyFormatter utility
+                                CurrencyFormatter.formatAmount(
+                                    amount = totalResult.total,
+                                    symbol = homeCurrency.symbol,
+                                    decimals = homeCurrency.decimals,
+                                    symbolFormat = SymbolFormat.valueOf(homeCurrency.symbolFormat)
+                                )
                             val warningMessage = if (totalResult.hasConversionWarnings) {
                                 "Some accounts could not be converted. Exchange rates may be missing."
                             } else null
@@ -433,8 +441,7 @@ class AccountListViewModel @Inject constructor(
     private suspend fun formatAmount(amount: Long, currencyId: Long): String {
         val currency = getCurrency(currencyId)
         return if (currency != null) {
-            val money = Money(amount)
-            currency.formatAmount(money)
+            CurrencyFormatter.formatAmount(amount, currency)
         } else {
             // Fallback to basic formatting if currency not found
             "$${amount / 100}.${String.format("%02d", amount % 100)}"
@@ -487,26 +494,6 @@ class AccountListViewModel @Inject constructor(
     private fun getAccountTypeIcon(type: String): Int {
         // TODO: Implement account type icon mapping
         return android.R.drawable.ic_menu_save
-    }
-
-    private suspend fun getCurrencyIdForAccount(account: AccountListItem): Long {
-        // Currency ID is now stored directly in AccountListItem
-        return account.currencyId
-    }
-    
-    private fun formatAmountWithCurrency(amount: Long, currency: ru.orangesoftware.financisto.data.model.CurrencyEntity): String {
-        // Format the amount using currency formatting rules
-        val absAmount = kotlin.math.abs(amount) / 100.0
-        val sign = if (amount < 0) "-" else ""
-        val formattedAmount = String.format("%.${currency.decimals}f", absAmount)
-        
-        return when {
-            currency.symbolFormat == "RS" -> "$sign${currency.symbol}$formattedAmount"
-            currency.symbolFormat == "LS" -> "$sign$formattedAmount${currency.symbol}"
-            currency.symbolFormat == "RSP" -> "$sign${currency.symbol} $formattedAmount"
-            currency.symbolFormat == "LSP" -> "$sign$formattedAmount ${currency.symbol}"
-            else -> "$sign${currency.symbol}$formattedAmount"
-        }
     }
 
     private fun sortAccounts(accounts: List<AccountListItem>, sortOrder: AccountSortOrder): List<AccountListItem> {

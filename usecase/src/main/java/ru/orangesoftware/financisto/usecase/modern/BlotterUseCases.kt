@@ -11,6 +11,10 @@ import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import ru.orangesoftware.financisto.repository.modern.CategoryRepository
 import ru.orangesoftware.financisto.repository.modern.CurrencyRepository
 import ru.orangesoftware.financisto.repository.modern.PayeeRepository
+import ru.orangesoftware.financisto.utils.CurrencyFormatter
+import ru.orangesoftware.financisto.domain.model.Currency
+import ru.orangesoftware.financisto.domain.model.CurrencyId
+import ru.orangesoftware.financisto.domain.model.SymbolFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +48,10 @@ data class BlotterItem(
     val isSplit: Boolean,
     val status: String,
     val originalCurrencyId: Long,
-    val originalFromAmount: Long
+    val originalFromAmount: Long,
+    // Formatted amounts for display
+    val formattedFromAmount: String,
+    val formattedRunningBalance: String
 ) {
     /**
      * Check if this is a transfer transaction
@@ -171,6 +178,44 @@ class GetBlotterForAccountUseCase @Inject constructor(
                     null
                 }
                 
+                // Get currency for formatting amounts
+                val currency = currencyRepository.getCurrencyById(account.currencyId)
+                val formattedFromAmount = if (currency != null) {
+                    val currencyModel = Currency(
+                        id = CurrencyId(currency.id),
+                        name = currency.name,
+                        title = currency.title,
+                        symbol = currency.symbol,
+                        isDefault = currency.isDefault,
+                        decimals = currency.decimals,
+                        decimalSeparator = currency.decimalSeparator,
+                        groupSeparator = currency.groupSeparator,
+                        symbolFormat = SymbolFormat.valueOf(currency.symbolFormat),
+                        isActive = true
+                    )
+                    CurrencyFormatter.formatAmount(transaction.fromAmount, currencyModel)
+                } else {
+                    "$${transaction.fromAmount / 100}.${String.format("%02d", transaction.fromAmount % 100)}"
+                }
+                
+                val formattedRunningBalance = if (currency != null) {
+                    val currencyModel = Currency(
+                        id = CurrencyId(currency.id),
+                        name = currency.name,
+                        title = currency.title,
+                        symbol = currency.symbol,
+                        isDefault = currency.isDefault,
+                        decimals = currency.decimals,
+                        decimalSeparator = currency.decimalSeparator,
+                        groupSeparator = currency.groupSeparator,
+                        symbolFormat = SymbolFormat.valueOf(currency.symbolFormat),
+                        isActive = true
+                    )
+                    CurrencyFormatter.formatAmount(runningBalance, currencyModel)
+                } else {
+                    "$${runningBalance / 100}.${String.format("%02d", runningBalance % 100)}"
+                }
+                
                 val blotterItem = BlotterItem(
                     transactionId = transaction.id,
                     datetime = transaction.datetime,
@@ -192,7 +237,9 @@ class GetBlotterForAccountUseCase @Inject constructor(
                     isSplit = transaction.categoryId == -1L,
                     status = transaction.status,
                     originalCurrencyId = transaction.originalCurrencyId,
-                    originalFromAmount = transaction.originalFromAmount
+                    originalFromAmount = transaction.originalFromAmount,
+                    formattedFromAmount = formattedFromAmount,
+                    formattedRunningBalance = formattedRunningBalance
                 )
                 
                 blotterItems.add(blotterItem)
@@ -256,6 +303,7 @@ class GetBlotterAllAccountsUseCase @Inject constructor(
     private val transactionDao: TransactionDao,
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
+    private val currencyRepository: CurrencyRepository,
     private val payeeRepository: PayeeRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
@@ -303,6 +351,26 @@ class GetBlotterAllAccountsUseCase @Inject constructor(
                     null
                 }
                 
+                // Get currency for formatting amounts
+                val currency = fromAccount?.let { currencyRepository.getCurrencyById(it.currencyId) }
+                val formattedFromAmount = if (currency != null) {
+                    val currencyModel = Currency(
+                        id = CurrencyId(currency.id),
+                        name = currency.name,
+                        title = currency.title,
+                        symbol = currency.symbol,
+                        isDefault = currency.isDefault,
+                        decimals = currency.decimals,
+                        decimalSeparator = currency.decimalSeparator,
+                        groupSeparator = currency.groupSeparator,
+                        symbolFormat = SymbolFormat.valueOf(currency.symbolFormat),
+                        isActive = true
+                    )
+                    CurrencyFormatter.formatAmount(transaction.fromAmount, currencyModel)
+                } else {
+                    "$${transaction.fromAmount / 100}.${String.format("%02d", transaction.fromAmount % 100)}"
+                }
+                
                 BlotterItem(
                     transactionId = transaction.id,
                     datetime = transaction.datetime,
@@ -324,7 +392,9 @@ class GetBlotterAllAccountsUseCase @Inject constructor(
                     isSplit = transaction.categoryId == -1L,
                     status = transaction.status,
                     originalCurrencyId = transaction.originalCurrencyId,
-                    originalFromAmount = transaction.originalFromAmount
+                    originalFromAmount = transaction.originalFromAmount,
+                    formattedFromAmount = formattedFromAmount,
+                    formattedRunningBalance = "$0.00" // Not applicable for all-accounts view
                 )
             }
             

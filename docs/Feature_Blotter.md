@@ -1,11 +1,11 @@
 # Feature: Blotter
 
-**Status:** Implemented (December 25, 2025)  
+**Status:** Implemented (December 27, 2025)  
 **Module:** `:feature:blotter`
 
 ## Overview
 
-The Blotter feature displays a list of transactions with running balance support. It is one of the core features of Financisto, allowing users to view their transaction history with cumulative balance tracking.
+The Blotter feature displays a list of transactions with running balance support and proper currency formatting. It is one of the core features of Financisto, allowing users to view their transaction history with cumulative balance tracking.
 
 ## Key Capabilities
 
@@ -60,7 +60,10 @@ data class BlotterItem(
     val isSplit: Boolean,
     val status: String,
     val originalCurrencyId: Long,
-    val originalFromAmount: Long
+    val originalFromAmount: Long,
+    // Formatted amounts for display - respects currency symbol and format
+    val formattedFromAmount: String,
+    val formattedRunningBalance: String
 )
 ```
 
@@ -143,8 +146,41 @@ viewModel.onInput(BlotterViewModel.Input.LoadAccountTransactions(accountId))
 val viewData by viewModel.viewData.collectAsStateWithLifecycle()
 ```
 
+## Currency Formatting
+
+The blotter properly displays amounts with correct currency symbols and formatting rules.
+
+### Implementation
+
+- **CurrencyFormatter utility** ([`core/common/.../CurrencyFormatter.kt`](../core/common/src/main/java/ru/orangesoftware/financisto/utils/CurrencyFormatter.kt))
+  - Centralized utility for formatting currency amounts
+  - Respects symbol position (RS, LS, RSP, LSP)
+  - Handles decimal places (0-4)
+  - Proper sign handling for negative amounts
+  
+- **Domain model integration**
+  - `Currency.formatAmount()` uses proper symbol formatting
+  - BlotterItem includes pre-formatted strings (`formattedFromAmount`, `formattedRunningBalance`)
+  - Use cases populate formatted amounts during data retrieval
+  
+- **Benefits**
+  - Consistent currency display across all features
+  - No UI-level formatting logic needed
+  - Domain layer handles all formatting rules
+  - Easy to reuse in other features
+
+### Example
+
+For an Indian Rupee account (₹) with symbol format LSP:
+```
+Amount: 1000 → Display: "1000.00 ₹"
+Running Balance: 5000 → Display: "5000.00 ₹"
+```
+
 ## Related Documentation
 
+- [Currency Formatter Utility](../core/common/src/main/java/ru/orangesoftware/financisto/utils/CurrencyFormatter.kt)
+- [Currency Domain Model](../core/common/src/main/java/ru/orangesoftware/financisto/domain/model/Currency.kt)
 - [Running Balance DAOs](Repository_RunningBalanceDao.md)
 - [Transaction DAOs](Repository_TransactionDao.md)
 - [Running Balance Use Cases](../usecase/src/main/java/ru/orangesoftware/financisto/usecase/modern/RunningBalanceUseCases.kt)
@@ -156,6 +192,7 @@ val viewData by viewModel.viewData.collectAsStateWithLifecycle()
 - Unit tests for BlotterViewModel
 - Integration tests for use cases
 - UI tests for BlotterScreen
+- Currency formatting tests
 
 ## Future Enhancements
 

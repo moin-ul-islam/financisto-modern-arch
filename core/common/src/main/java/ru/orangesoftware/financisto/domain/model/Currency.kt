@@ -22,11 +22,15 @@ data class Currency(
      * Business logic: Format money amount according to currency rules
      */
     fun formatAmount(money: Money): String {
-        val amount = money.toDecimal()
-        return if (decimals == 0) {
-            "$symbol${amount.toLong()}"
-        } else {
-            "$symbol$amount"
+        val absAmount = kotlin.math.abs(money.amountInCents) / 100.0
+        val sign = if (money.amountInCents < 0) "-" else ""
+        val formattedAmount = String.format("%.${decimals}f", absAmount)
+        
+        return when (symbolFormat) {
+            SymbolFormat.RS -> "$sign$symbol$formattedAmount"
+            SymbolFormat.LS -> "$sign$formattedAmount$symbol"
+            SymbolFormat.RSP -> "$sign$symbol $formattedAmount"
+            SymbolFormat.LSP -> "$sign$formattedAmount $symbol"
         }
     }
     

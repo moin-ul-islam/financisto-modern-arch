@@ -105,7 +105,7 @@ private fun BlotterTopBar(
                 )
                 if (showRunningBalance && totalBalance != null) {
                     Text(
-                        text = "Balance: ${formatAmount(totalBalance)}",
+                        text = "Balance: ${totalBalance.let { formatAmount(it) }}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (totalBalance >= 0) Color.Green else Color.Red
                     )
@@ -261,7 +261,7 @@ private fun BlotterItemRow(
         ) {
             // Transaction amount
             Text(
-                text = formatAmount(item.fromAmount),
+                text = item.formattedFromAmount,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = when {
@@ -274,7 +274,7 @@ private fun BlotterItemRow(
             // Running balance (only shown for single account view)
             if (showRunningBalance) {
                 Text(
-                    text = "Balance: ${formatAmount(item.runningBalance)}",
+                    text = "Balance: ${item.formattedRunningBalance}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
