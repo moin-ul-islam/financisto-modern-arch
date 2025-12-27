@@ -42,11 +42,6 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.d("MainActivity", "Room migration test clicked")
         }
         
-        // New feature module ViewModel demos
-        findViewById<android.widget.Button>(R.id.btnDemoBlotterViewModel)?.setOnClickListener {
-            startActivity(Intent(this, BlotterViewModelDemoActivity::class.java))
-        }
-        
         findViewById<android.widget.Button>(R.id.btnDemoAccountViewModel)?.setOnClickListener {
             startActivity(Intent(this, AccountViewModelDemoActivity::class.java))
         }

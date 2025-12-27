@@ -112,8 +112,9 @@ SQLite Database
 
 3. **Navigation**
    - Navigation callbacks are defined in `AccountListScreen`
+   - ✅ **Implemented:** Blotter navigation - Opens blotter screen showing account transactions with running balance
    - ⚠️ **Missing:** ViewModel handlers are TODOs for edit/create/totals; navigation only works when callers wire callbacks externally
-   - ⚠️ **Missing:** Some navigation destinations not yet implemented (Account Totals, Blotter filtering, Update Balance, Purge Account)
+   - ⚠️ **Missing:** Some navigation destinations not yet implemented (Account Totals, Update Balance, Purge Account)
 
 4. **Transaction Count**
    - Field exists in `AccountListItem`
@@ -545,10 +546,30 @@ Enhanced currency formatting in ViewModel:
 - Correct handling of negative amounts
 - Formatted using home currency for totals
 
+### Blotter Integration
+
+**Implemented**: Account list bottom sheet now has a working "Blotter" action that navigates to the blotter screen.
+
+**Navigation Flow**:
+1. Long-press on an account to show the action bottom sheet
+2. Tap "Blotter" action
+3. Navigate to blotter screen with the specific account ID
+4. Blotter screen displays all transactions for that account with running balance
+
+**Implementation**:
+- Bottom sheet action: `AccountAction.BLOTTER` 
+- Navigation callback: `onNavigateToBlotter(accountId)`
+- Route: `blotter/{accountId}` in `AccountListComposeActivity`
+- Screen: `BlotterScreen` from `:feature:blotter` module
+- The blotter shows transactions sorted by date (most recent first) with running balance calculated for each transaction
+
+For more details on the blotter feature, see [Feature_Blotter.md](Feature_Blotter.md).
+
 ## References
 
 - Use case overview: [docs/Usecase_Module.md](Usecase_Module.md)
 - Repository overview: [docs/Repository_Module.md](Repository_Module.md)
+- Blotter feature: [docs/Feature_Blotter.md](Feature_Blotter.md)
 - Legacy Implementation: `legacy-app/src/main/java/.../AccountListActivity.java`
 - Architecture Guidelines: [CODING_PRINCIPLES.md](./CODING_PRINCIPLES.md)
 - Project Instructions: [.github/copilot-instructions.md](../.github/copilot-instructions.md)

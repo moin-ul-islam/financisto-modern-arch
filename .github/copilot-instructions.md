@@ -5,7 +5,7 @@
 This repository contains two Android applications:
 
 - **`:legacy-app`** - Ancient monolithic expense and budget manager codebase. Fully functional but uses outdated architecture. This module should NOT be modified unless explicitly requested.
-- **`:modern-app`** - Work-in-progress rewrite using modern Android architecture. This is the primary development target. Currently not functional.
+- **`:modern-app`** - Work-in-progress rewrite using modern Android architecture. This is the primary development target. Currently not fully functional and may have bugs.
 
 **Important**: All new development and features should be implemented in the `:modern-app` module and its supporting modules unless otherwise specified.
 
@@ -26,6 +26,9 @@ Compose UI → ViewModel → UseCase → Repository → Room DAO → SQLite
 - **`core/ui/`** - Shared UI components and theming
 - **`modern-app/`** - Main application module for modern architecture
 
+## Important points
+- When asked to implement a feature that requires data layer support, check if existing usecases are sufficient. If not, add usecases for it. These new usecases should rely on the existing repository support. If no relevant repository exists, check the Room DB and if some DAO is there, create corresponding repository. Finally, if there is no ROOM DAO either, check if the legacy app had this feature and try to mimic its SQLite data structures.
+- Documentation in the docs folder is very important. The main idea is to allow further copilot queries to work better. Instead of having to check the code everytime, the docs should be sufficient and provide sufficient information to the copilot.
 ## Coding Guidelines
 
 ### Architecture Principles

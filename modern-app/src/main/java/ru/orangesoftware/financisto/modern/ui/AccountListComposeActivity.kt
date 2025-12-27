@@ -70,8 +70,7 @@ private fun AccountNavigationGraph(
                     android.util.Log.d("Navigation", "Navigate to account totals")
                 },
                 onNavigateToBlotter = { accountId ->
-                    // TODO: Implement blotter navigation
-                    android.util.Log.d("Navigation", "Navigate to blotter for account: $accountId")
+                    navController.navigate("blotter/$accountId")
                 },
                 onNavigateToEditAccount = { accountId ->
                     navController.navigate("edit_account/$accountId")
@@ -282,6 +281,21 @@ private fun AccountNavigationGraph(
                     navController.previousBackStackEntry?.savedStateHandle?.set("refresh_entity_id", projectId)
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(
+            route = "blotter/{accountId}",
+            arguments = listOf(
+                navArgument("accountId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getLong("accountId") ?: -1L
+            
+            ru.orangesoftware.financisto.feature.blotter.BlotterScreen(
+                accountId = accountId
             )
         }
 
