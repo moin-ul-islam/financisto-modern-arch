@@ -1,1 +1,29 @@
-include ':app'
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url "https://maven.scijava.org/content/repositories/public"
+        }
+    }
+}
+
+include ':legacy-app'
+include ':modern-app'
+include ':core:common'
+include ':core:ui'
+include ':repository'
+include ':usecase'
+include ':feature:blotter'
+include ':feature:account'
+include ':feature:transaction'
+include ':feature:reference'

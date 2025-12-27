@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Financisto Playground</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="transactions_title">Transactions</string>
+    <string name="running_balance_test_title">Running Balance Test</string>
+    
+    <!-- Main menu -->
+    <string name="menu_accounts">Test Accounts</string>
+    <string name="menu_transactions">Test Transactions</string>
+    <string name="menu_running_balance">Test Running Balance</string>
+    <string name="menu_room_migration">Test Room Migration</string>
+    
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="empty_list">No items found</string>
+    <string name="refresh">Refresh</string>
+    
+    <!-- Account related -->
+    <string name="account_name">Account Name</string>
+    <string name="account_balance">Balance</string>
+    <string name="account_type">Account Type</string>
+    <string name="create_account">Create Account</string>
+    <string name="edit_account">Edit Account</string>
+    <string name="delete_account">Delete Account</string>
+    
+    <!-- Transaction related -->
+    <string name="transaction_amount">Amount</string>
+    <string name="transaction_note">Note</string>
+    <string name="transaction_date">Date</string>
+    <string name="create_transaction">Create Transaction</string>
+    <string name="edit_transaction">Edit Transaction</string>
+    <string name="delete_transaction">Delete Transaction</string>
+    
+    <!-- Running balance related -->
+    <string name="rebuild_running_balance">Rebuild Running Balance</string>
+    <string name="running_balance_status">Running Balance Status</string>
+    <string name="last_running_balance">Last Running Balance</string>
+</resources>

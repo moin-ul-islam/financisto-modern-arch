@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.library'
+    alias(libs.plugins.kotlin.android)
+    id 'kotlin-kapt'
+    alias(libs.plugins.hilt.android)
+}
+
+android {
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    namespace 'ru.orangesoftware.financisto.core.ui'
+    
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+        compose true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion libs.versions.composeCompiler.get()
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation libs.bundles.kotlin
+    
+    // Compose dependencies
+    implementation platform(libs.compose.bom)
+    implementation libs.bundles.compose
+    implementation libs.compose.material3
+    
+    // Dependency Injection
+    implementation libs.bundles.hilt
+    kapt libs.hilt.compiler
+    
+    // Modern Android Architecture
+    implementation libs.bundles.lifecycle
+    implementation libs.bundles.navigation
+    
+    // Coroutines
+    implementation libs.bundles.coroutines
+    
+    // AndroidX UI components
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.legacy.support.v4
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.8.0'
+    
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.test.core
+}

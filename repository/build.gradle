@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.library'
+    alias(libs.plugins.kotlin.android)
+    id 'kotlin-kapt'
+    alias(libs.plugins.hilt.android)
+}
+
+android {
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    namespace 'ru.orangesoftware.financisto.repository'
+    
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation libs.bundles.kotlin
+    
+    // Dependency Injection
+    implementation libs.bundles.hilt
+    kapt libs.hilt.compiler
+    
+    // Modern Database - Room
+    implementation libs.bundles.room
+    kapt libs.androidx.room.compiler
+    
+    // Coroutines
+    implementation libs.bundles.coroutines
+    
+    // Database and data persistence (legacy - keeping for coexistence)
+    implementation 'androidx.room:room-runtime:2.4.3'
+    implementation 'androidx.room:room-ktx:2.4.3'
+    
+    // Reactive streams (legacy)
+    implementation libs.bundles.rxjava.bundle
+    
+    // Testing
+    testImplementation libs.bundles.testing.modern
+    testImplementation libs.androidx.room.testing
+    testImplementation libs.hilt.android.testing
+    
+    // For Hilt testing annotation processor
+    kaptTest libs.hilt.compiler
+}

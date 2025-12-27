@@ -1,0 +1,105 @@
+// noinspection GradleCompatible
+repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdk libs.versions.compileSdk.get().toInteger()
+
+    defaultConfig {
+        applicationId "ru.orangesoftware.financisto"
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        versionCode libs.versions.versionCode.get().toInteger()
+        versionName libs.versions.versionName.get()
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "androidManifestFile": "$projectDir/src/main/AndroidManifest.xml".toString()
+                ]
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs 'src/main/java'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable false
+            jniDebuggable false
+            shrinkResources true
+            minifyEnabled true
+            crunchPngs true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    testOptions {
+        unitTests {
+            returnDefaultValues = true
+            includeAndroidResources = true
+        }
+    }
+
+    sourceSets {
+        test {
+            resources.srcDirs += ['src/test/resources']
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES.txt', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/LICENSE', 'META-INF/DEPENDENCIES', 'META-INF/notice.txt', 'META-INF/license.txt', 'META-INF/dependencies.txt', 'META-INF/LGPL2.1']
+        }
+    }
+
+    namespace 'ru.orangesoftware.financisto'
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    // Legacy AndroidX support
+    implementation libs.androidx.legacy.support.v4
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.multidex
+
+    implementation libs.bundles.play.services
+
+    // Android Annotations (legacy - keeping for coexistence)
+    annotationProcessor libs.androidannotations
+    implementation libs.androidannotations.api
+
+    implementation libs.gson
+    implementation libs.trove4j
+
+    implementation libs.dropbox.core.sdk
+    implementation libs.okhttp
+    implementation libs.eventbus
+    implementation libs.material.datetimepicker
+    implementation libs.commons.io
+    implementation libs.bundles.rxjava.bundle
+    implementation libs.glide
+
+    implementation fileTree(include: '**/*.jar', dir: 'libs')
+
+    testImplementation libs.bundles.testing
+}

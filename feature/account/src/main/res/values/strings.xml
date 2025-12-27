@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Account Action Callout Strings (from main app strings.xml) -->
+    <string name="info">Info</string>
+    <string name="blotter">Blotter</string>
+    <string name="edit">Edit</string>
+    <string name="transaction">Transaction</string>
+    <string name="transfer">Transfer</string>
+    <string name="balance">Balance</string>
+    <string name="delete_old_transactions">Delete old transactions</string>
+    <string name="close_account">Close account</string>
+    <string name="reopen_account">Re-open account</string>
+    <string name="delete_account">Delete account</string>
+</resources>
