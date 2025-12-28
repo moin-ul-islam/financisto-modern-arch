@@ -347,7 +347,8 @@ class TransactionFormViewModel @Inject constructor(
                     datetime = uiState.dateTime,
                     note = split.note,
                     status = uiState.status,
-                    parentId = 0L // Will be set after parent is saved
+                    parentId = 0L, // Will be set after parent is saved
+                    originalCurrencyId = parentTransaction.originalCurrencyId
                 )
             }
         } else {

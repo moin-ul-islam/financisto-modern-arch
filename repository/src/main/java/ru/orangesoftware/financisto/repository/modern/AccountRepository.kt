@@ -100,9 +100,6 @@ class AccountRepositoryImpl @Inject constructor(
     ) = withContext(ioDispatcher) {
         // Perform the atomic update
         accountDao.incrementAccountBalance(accountId, deltaAmount, lastTransactionDate)
-        // Trigger a dummy read to invalidate Room's Flow cache
-        // This ensures getAllAccountsFlow() emits the updated data
-        accountDao.getAccountById(accountId)
         Unit
     }
 }

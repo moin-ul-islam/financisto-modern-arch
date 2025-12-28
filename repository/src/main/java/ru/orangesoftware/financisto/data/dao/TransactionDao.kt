@@ -198,6 +198,7 @@ interface TransactionDao {
         SELECT * FROM transactions 
         WHERE (from_account_id = :accountId OR to_account_id = :accountId)
         AND is_template = 0
+        AND parent_id = 0
         ORDER BY datetime ASC, _id ASC
     """)
     suspend fun getTransactionsForRunningBalance(accountId: Long): List<TransactionEntity>

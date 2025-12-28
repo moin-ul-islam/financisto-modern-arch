@@ -155,7 +155,7 @@ class BlotterViewModel @Inject constructor(
             
             getBlotterForAccountUseCase.execute(
                 accountId = accountId,
-                ensureBalanceCalculated = true
+                ensureBalanceCalculated = false
             )
                 .onSuccess { items ->
                     // Get total balance from first item (most recent transaction has current balance)

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.orangesoftware.financisto.data.model.TransactionEntity
 import ru.orangesoftware.financisto.di.IoDispatcher
+import ru.orangesoftware.financisto.repository.modern.AccountRepository
 import ru.orangesoftware.financisto.repository.modern.TransactionRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -375,7 +376,7 @@ class UpdateRunningBalanceIncrementallyUseCase @Inject constructor(
 @Singleton
 class InsertSplitTransactionUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val updateAccountBalanceIncrementallyUseCase: UpdateAccountBalanceIncrementallyUseCase,
+    private val accountRepository: AccountRepository,
     private val updateRunningBalanceIncrementallyUseCase: UpdateRunningBalanceIncrementallyUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
@@ -395,16 +396,12 @@ class InsertSplitTransactionUseCase @Inject constructor(
             val parentId = transactionRepository.insertTransaction(parent)
             
             // 2. Update parent's fromAccount balance and running balance
-            updateAccountBalanceIncrementallyUseCase(
-                accountId = parent.fromAccountId,
-                deltaAmount = -parent.fromAmount, // Negative because it's an expense
-                transactionDate = parent.datetime
-            )
+            accountRepository.incrementAccountBalance(parent.fromAccountId, parent.fromAmount, parent.datetime)
             
             updateRunningBalanceIncrementallyUseCase(
                 accountId = parent.fromAccountId,
                 transactionId = parentId,
-                transactionAmount = -parent.fromAmount,
+                transactionAmount = parent.fromAmount,
                 transactionDate = parent.datetime
             )
             
@@ -417,10 +414,10 @@ class InsertSplitTransactionUseCase @Inject constructor(
                 // 4. Update balances for transfer children only
                 if (childWithParent.toAccountId > 0) {
                     // This is a transfer - update toAccount balance
-                    updateAccountBalanceIncrementallyUseCase(
+                    accountRepository.updateAccountBalance(
                         accountId = childWithParent.toAccountId,
-                        deltaAmount = childWithParent.toAmount,
-                        transactionDate = childWithParent.datetime
+                        amount = childWithParent.toAmount,
+                        lastTransactionDate = childWithParent.datetime
                     )
                     
                     updateRunningBalanceIncrementallyUseCase(
