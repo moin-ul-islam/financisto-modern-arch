@@ -16,6 +16,7 @@ import ru.orangesoftware.financisto.data.dao.CategoryDao
 import ru.orangesoftware.financisto.data.dao.PayeeDao
 import ru.orangesoftware.financisto.data.dao.ProjectDao
 import ru.orangesoftware.financisto.data.dao.AttributeDao
+import ru.orangesoftware.financisto.data.dao.BlotterDao
 import ru.orangesoftware.financisto.data.dao.TransactionAttributeDao
 import javax.inject.Singleton
 
@@ -92,6 +93,11 @@ object DatabaseModule {
     @Provides
     fun provideProjectDao(database: FinancistoDatabase): ProjectDao {
         return database.projectDao()
+    }
+
+    @Provides
+    fun provideBlotterDao(database: FinancistoDatabase): BlotterDao {
+        return database.blotterDao()
     }
 
     /**

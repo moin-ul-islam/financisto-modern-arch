@@ -13,6 +13,7 @@ import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.usecase.modern.BlotterItem
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterAllAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterForAccountUseCase
+import ru.orangesoftware.financisto.usecase.modern.GetBlotterViewForAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.ObserveBlotterForAccountUseCase
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ class BlotterViewModel @Inject constructor(
     private val getBlotterForAccountUseCase: GetBlotterForAccountUseCase,
     private val getBlotterAllAccountsUseCase: GetBlotterAllAccountsUseCase,
     private val observeBlotterForAccountUseCase: ObserveBlotterForAccountUseCase,
+    private val getBlotterViewUsecase: GetBlotterViewForAccountUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -153,10 +155,11 @@ class BlotterViewModel @Inject constructor(
                 showRunningBalance = true
             )
             
-            getBlotterForAccountUseCase.execute(
-                accountId = accountId,
-                ensureBalanceCalculated = false
-            )
+//            getBlotterForAccountUseCase.execute(
+//                accountId = accountId,
+//                ensureBalanceCalculated = false
+//            )
+               getBlotterViewUsecase.execute(accountId)
                 .onSuccess { items ->
                     // Get total balance from first item (most recent transaction has current balance)
                     val totalBalance = items.firstOrNull()?.runningBalance
