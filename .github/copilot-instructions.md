@@ -28,7 +28,7 @@ Compose UI → ViewModel → UseCase → Repository → Room DAO → SQLite
 
 ## Important points
 - When asked to implement a feature that requires data layer support, check if existing usecases are sufficient. If not, add usecases for it. These new usecases should rely on the existing repository support. If no relevant repository exists, check the Room DB and if some DAO is there, create corresponding repository. Finally, if there is no ROOM DAO either, check if the legacy app had this feature and try to mimic its SQLite data structures.
-- Documentation in the docs folder is very important. The main idea is to allow further copilot queries to work better. Instead of having to check the code everytime, the docs should be sufficient and provide sufficient information to the copilot.
+
 ## Coding Guidelines
 
 ### Architecture Principles
@@ -88,14 +88,6 @@ Compose UI → ViewModel → UseCase → Repository → Room DAO → SQLite
   - ViewModel: Input handling and state transitions
   - UI: Rendering and user interaction verification
 
-## Documentation Requirements
-
-1. **Detailed coding principles**: See [`docs/CODING_PRINCIPLES.md`](../docs/CODING_PRINCIPLES.md)
-
-2. **Feature documentation**: 
-   - When implementing a new feature, create a markdown file in `docs/` describing what was done
-   - When modifying an existing feature, update the corresponding markdown file in `docs/`
-   - Include implementation details, architectural decisions, and any important notes
 
 ## Verification Steps
 
@@ -135,7 +127,6 @@ Compose UI → ViewModel → UseCase → Repository → Room DAO → SQLite
 - **Storage models are private** to repository module - never expose them
 - **ViewModels delegate** to UseCases, never to Repositories directly
 - **Write tests** as you develop, not as an afterthought
-- **Document features** in the `docs/` folder
 - **Use reactive flows** instead of manual polling/refresh patterns
 
 ## When in Doubt
