@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.orangesoftware.financisto.core.ui.theme.ExpenseRed
+import ru.orangesoftware.financisto.core.ui.theme.IncomeGreen
 import ru.orangesoftware.financisto.usecase.modern.BlotterItem
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -55,6 +57,7 @@ fun BlotterScreen(
         topBar = {
             BlotterTopBar(
                 accountId = accountId,
+                formattedTotalBalance = viewData.formattedTotalBalance,
                 totalBalance = viewData.totalBalance,
                 showRunningBalance = viewData.showRunningBalance
             )
@@ -93,6 +96,7 @@ fun BlotterScreen(
 @Composable
 private fun BlotterTopBar(
     accountId: Long?,
+    formattedTotalBalance: String?,
     totalBalance: Long?,
     showRunningBalance: Boolean
 ) {
@@ -103,11 +107,11 @@ private fun BlotterTopBar(
                     text = if (accountId != null) "Account Blotter" else "All Transactions",
                     style = MaterialTheme.typography.titleLarge
                 )
-                if (showRunningBalance && totalBalance != null) {
+                if (showRunningBalance && formattedTotalBalance != null && totalBalance != null) {
                     Text(
-                        text = "Balance: ${totalBalance.let { formatAmount(it) }}",
+                        text = "Balance: $formattedTotalBalance",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (totalBalance >= 0) Color.Green else Color.Red
+                        color = if (totalBalance >= 0) IncomeGreen else ExpenseRed
                     )
                 }
             }
@@ -265,8 +269,8 @@ private fun BlotterItemRow(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = when {
-                    item.fromAmount > 0 -> Color.Green
-                    item.fromAmount < 0 -> Color.Red
+                    item.fromAmount > 0 -> IncomeGreen
+                    item.fromAmount < 0 -> ExpenseRed
                     else -> MaterialTheme.colorScheme.onSurface
                 }
             )
@@ -288,8 +292,8 @@ private fun TransactionIcon(item: BlotterItem) {
     val (icon, tint) = when {
         item.isTransferTransaction -> Icons.Default.AccountCircle to MaterialTheme.colorScheme.primary
         item.isSplit -> Icons.Default.AccountCircle to MaterialTheme.colorScheme.secondary
-        item.fromAmount > 0 -> Icons.Default.Add to Color.Green
-        item.fromAmount < 0 -> Icons.Default.Delete to Color.Red
+        item.fromAmount > 0 -> Icons.Default.Add to IncomeGreen
+        item.fromAmount < 0 -> Icons.Default.Delete to ExpenseRed
         else -> Icons.Default.AccountCircle to MaterialTheme.colorScheme.onSurface
     }
     
@@ -300,12 +304,7 @@ private fun TransactionIcon(item: BlotterItem) {
     )
 }
 
-// Helper functions for formatting
-private fun formatAmount(amount: Long): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-    return formatter.format(amount / 100.0)
-}
-
+// Helper function for formatting
 private fun formatDate(timestamp: Long): String {
     val formatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     return formatter.format(Date(timestamp))

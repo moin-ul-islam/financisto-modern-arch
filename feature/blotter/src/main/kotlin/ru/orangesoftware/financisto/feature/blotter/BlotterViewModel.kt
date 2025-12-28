@@ -91,7 +91,8 @@ class BlotterViewModel @Inject constructor(
         val error: String? = null,
         val accountId: Long? = null, // null = all accounts, otherwise specific account
         val showRunningBalance: Boolean = false, // true when viewing single account
-        val totalBalance: Long? = null // Account balance (only for single account view)
+        val totalBalance: Long? = null, // Account balance (only for single account view)
+        val formattedTotalBalance: String? = null // Formatted total balance with currency
     )
 
     /**
@@ -157,14 +158,16 @@ class BlotterViewModel @Inject constructor(
                 ensureBalanceCalculated = true
             )
                 .onSuccess { items ->
-                    // Get total balance from last item (oldest transaction has final balance)
-                    val totalBalance = items.lastOrNull()?.runningBalance
+                    // Get total balance from first item (most recent transaction has current balance)
+                    val totalBalance = items.firstOrNull()?.runningBalance
+                    val formattedTotalBalance = items.firstOrNull()?.formattedRunningBalance
                     
                     _viewData.value = _viewData.value.copy(
                         items = items,
                         isLoading = false,
                         isRefreshing = false,
-                        totalBalance = totalBalance
+                        totalBalance = totalBalance,
+                        formattedTotalBalance = formattedTotalBalance
                     )
                 }
                 .onFailure { exception ->
@@ -246,13 +249,15 @@ class BlotterViewModel @Inject constructor(
                     )
                 }
                 .collect { items ->
-                    val totalBalance = items.lastOrNull()?.runningBalance
+                    val totalBalance = items.firstOrNull()?.runningBalance
+                    val formattedTotalBalance = items.firstOrNull()?.formattedRunningBalance
                     
                     _viewData.value = _viewData.value.copy(
                         items = items,
                         isLoading = false,
                         isRefreshing = false,
                         totalBalance = totalBalance,
+                        formattedTotalBalance = formattedTotalBalance,
                         error = null
                     )
                 }
