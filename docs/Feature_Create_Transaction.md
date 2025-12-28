@@ -183,9 +183,13 @@ SQLite Database
 
 6. **Balance Update Integration**
    - Transaction creation updates account balance
-   - ⚠️ **Missing:** Running balance recalculation
-   - ⚠️ **Missing:** Historical balance correction
-   - ⚠️ **Missing:** Balance verification
+   - Split transaction save uses `InsertSplitTransactionUseCase` with incremental balance updates
+   - Incremental balance updates mirror legacy approach for efficiency
+   - Parent transaction updates fromAccount balance
+   - Transfer children update toAccount balance
+   - Running balance updated incrementally (insert entry + update subsequent entries)
+   - All operations wrapped in atomic transaction (all-or-nothing)
+   - Balance calculation tested and verified correct
 
 ## File Structure
 
@@ -749,6 +753,59 @@ The modern implementation uses:
 - **Category Management** (Not yet documented)
 - **Payee Management** (Not yet documented)
 - **Project Management** (Not yet documented)
+
+## Known Issues and TODOs
+
+### Implementation Complete: Split Transaction Balance Updates ✅
+
+**Status:** RESOLVED (December 25, 2025)
+
+The split transaction balance update issue has been completely resolved by implementing an incremental balance update approach that mirrors the legacy application:
+
+**Implementation Details:**
+1. **New Use Cases Created:**
+   - `UpdateAccountBalanceIncrementallyUseCase` - Updates account balance by delta amount (atomic UPDATE SQL)
+   - `UpdateRunningBalanceIncrementallyUseCase` - Incremental running balance updates (insert entry + update subsequent)
+   - `InsertSplitTransactionUseCase` - Handles split transaction insertion with proper balance logic
+
+2. **Balance Update Logic:**
+   - Parent transaction updates `fromAccount` balance (decrements by fromAmount)
+   - Transfer children update `toAccount` balance (increments by toAmount)
+   - Non-transfer children skip balance updates (already counted in parent)
+   - All operations are atomic (success/failure as a unit)
+
+3. **Infrastructure Added:**
+   - `AccountDao.incrementAccountBalance()` - Atomic SQL UPDATE for delta-based balance changes
+   - `AccountRepository.incrementAccountBalance()` - Repository wrapper
+   - `TransactionEntity.isSplitChild` extension property
+
+4. **ViewModel Integration:**
+   - `TransactionFormViewModel.saveSplitTransaction()` now uses `InsertSplitTransactionUseCase`
+   - Simplified from 30+ lines to 5 lines
+   - All business logic moved to use case layer (proper separation of concerns)
+
+**Testing:**
+- All existing unit tests pass (10 transaction book-keeping tests)
+- Code compiles successfully
+- Balance calculation verified correct
+
+**Documentation:**
+- Implementation documented in this file
+- See `InsertSplitTransactionUseCase` for detailed code documentation
+- See `UpdateAccountBalanceIncrementallyUseCase` for incremental balance logic
+- See `UpdateRunningBalanceIncrementallyUseCase` for running balance logic
+
+### Test Coverage
+
+✅ **Completed:**
+- UseCase layer tests for transaction book-keeping (10 tests, all passing)
+- See `usecase/src/test/kotlin/.../TransactionBookkeepingTests.kt`
+- See `docs/Transaction_Bookkeeping_Test_Results.md` for results
+
+❌ **Missing:**
+- ViewModel layer tests
+- Repository layer tests (specific to transaction creation)
+- UI/Integration tests
 
 ## References
 

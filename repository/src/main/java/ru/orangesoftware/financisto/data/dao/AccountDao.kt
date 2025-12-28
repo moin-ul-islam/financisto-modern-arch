@@ -68,6 +68,14 @@ interface AccountDao {
     suspend fun updateAccountBalance(accountId: Long, amount: Long, lastTransactionDate: Long)
     
     /**
+     * Increment account balance by delta amount atomically.
+     * This is more efficient than fetching, calculating, and updating.
+     * Returns the number of rows updated (should be 1 if successful).
+     */
+    @Query("UPDATE account SET total_amount = total_amount + :deltaAmount, last_transaction_date = :lastTransactionDate WHERE _id = :accountId")
+    suspend fun incrementAccountBalance(accountId: Long, deltaAmount: Long, lastTransactionDate: Long): Int
+    
+    /**
      * Get account count
      */
     @Query("SELECT COUNT(*) FROM account WHERE is_active = 1")

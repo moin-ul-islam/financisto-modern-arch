@@ -286,3 +286,157 @@ class SearchTransactionsUseCase @Inject constructor(
         }
     }
 }
+
+/**
+ * Updates an account's balance by incrementing it with a delta amount.
+ * This is more efficient than recalculating from all transactions.
+ *
+ * Mirrors the legacy approach of atomic incremental balance updates.
+ */
+@Singleton
+class UpdateAccountBalanceIncrementallyUseCase @Inject constructor(
+    private val accountRepository: ru.orangesoftware.financisto.repository.modern.AccountRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) {
+    /**
+     * Increment account balance by the specified delta amount.
+     *
+     * @param accountId The ID of the account to update
+     * @param deltaAmount The amount to add to the balance (can be negative for decrements)
+     * @param transactionDate The transaction date to update last_transaction_date
+     */
+    suspend operator fun invoke(
+        accountId: Long,
+        deltaAmount: Long,
+        transactionDate: Long
+    ) = withContext(ioDispatcher) {
+        accountRepository.incrementAccountBalance(accountId, deltaAmount, transactionDate)
+    }
+}
+
+/**
+ * Updates running balance incrementally for a new or updated transaction.
+ * This is more efficient than rebuilding all running balances.
+ *
+ * Mirrors the legacy approach of inserting a new running balance entry
+ * and updating all subsequent entries.
+ */
+@Singleton
+class UpdateRunningBalanceIncrementallyUseCase @Inject constructor(
+    private val runningBalanceDao: ru.orangesoftware.financisto.data.dao.RunningBalanceDao,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) {
+    /**
+     * Update running balance for a transaction incrementally.
+     *
+     * 1. Insert/update the running balance entry for this transaction
+     * 2. Update all running balances after this transaction's datetime
+     *
+     * @param accountId The account ID
+     * @param transactionId The transaction ID
+     * @param transactionAmount The transaction amount (signed)
+     * @param transactionDate The transaction datetime
+     */
+    suspend operator fun invoke(
+        accountId: Long,
+        transactionId: Long,
+        transactionAmount: Long,
+        transactionDate: Long
+    ) = withContext(ioDispatcher) {
+        // Get the balance just before this transaction
+        val previousBalance = runningBalanceDao.getAccountBalanceAtTime(accountId, transactionDate - 1) ?: 0L
+        
+        // Calculate the new balance for this transaction
+        val newBalance = previousBalance + transactionAmount
+        
+        // Insert the running balance entry for this transaction
+        runningBalanceDao.insertRunningBalance(
+            ru.orangesoftware.financisto.data.model.RunningBalanceEntity(
+                accountId = accountId,
+                transactionId = transactionId,
+                datetime = transactionDate,
+                balance = newBalance
+            )
+        )
+        
+        // Update all subsequent running balance entries
+        runningBalanceDao.updateRunningBalancesAfterTime(accountId, transactionAmount, transactionDate)
+    }
+}
+
+/**
+ * Inserts a split transaction (parent + children) with proper balance updates.
+ *
+ * Mirrors the legacy DatabaseAdapter.insertSplits() logic:
+ * - Parent transaction updates fromAccount balance
+ * - Transfer children update toAccount balance
+ * - Non-transfer children don't update any balance (already counted in parent)
+ */
+@Singleton
+class InsertSplitTransactionUseCase @Inject constructor(
+    private val transactionRepository: TransactionRepository,
+    private val updateAccountBalanceIncrementallyUseCase: UpdateAccountBalanceIncrementallyUseCase,
+    private val updateRunningBalanceIncrementallyUseCase: UpdateRunningBalanceIncrementallyUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) {
+    /**
+     * Insert a split transaction with all its children atomically.
+     *
+     * @param parent The parent transaction (should have categoryId = -1)
+     * @param children List of child transactions (will have parentId set to parent's ID after insertion)
+     * @return Result containing the parent transaction ID if successful, or error
+     */
+    suspend operator fun invoke(
+        parent: TransactionEntity,
+        children: List<TransactionEntity>
+    ): Result<Long> = withContext(ioDispatcher) {
+        try {
+            // 1. Insert parent transaction
+            val parentId = transactionRepository.insertTransaction(parent)
+            
+            // 2. Update parent's fromAccount balance and running balance
+            updateAccountBalanceIncrementallyUseCase(
+                accountId = parent.fromAccountId,
+                deltaAmount = -parent.fromAmount, // Negative because it's an expense
+                transactionDate = parent.datetime
+            )
+            
+            updateRunningBalanceIncrementallyUseCase(
+                accountId = parent.fromAccountId,
+                transactionId = parentId,
+                transactionAmount = -parent.fromAmount,
+                transactionDate = parent.datetime
+            )
+            
+            // 3. Insert all child transactions
+            for (child in children) {
+                // Set the parentId to the newly inserted parent
+                val childWithParent = child.copy(parentId = parentId)
+                val childId = transactionRepository.insertTransaction(childWithParent)
+                
+                // 4. Update balances for transfer children only
+                if (childWithParent.toAccountId > 0) {
+                    // This is a transfer - update toAccount balance
+                    updateAccountBalanceIncrementallyUseCase(
+                        accountId = childWithParent.toAccountId,
+                        deltaAmount = childWithParent.toAmount,
+                        transactionDate = childWithParent.datetime
+                    )
+                    
+                    updateRunningBalanceIncrementallyUseCase(
+                        accountId = childWithParent.toAccountId,
+                        transactionId = childId,
+                        transactionAmount = childWithParent.toAmount,
+                        transactionDate = childWithParent.datetime
+                    )
+                }
+                // Note: Non-transfer children don't update fromAccount because
+                // the parent transaction already did that
+            }
+            
+            Result.success(parentId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

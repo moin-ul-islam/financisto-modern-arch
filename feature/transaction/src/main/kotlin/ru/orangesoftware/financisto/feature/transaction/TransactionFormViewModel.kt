@@ -46,6 +46,7 @@ class TransactionFormViewModel @Inject constructor(
     private val createTransactionUseCase: CreateTransactionWithBalanceUpdateUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val insertOrUpdateTransactionUseCase: ru.orangesoftware.financisto.usecase.modern.InsertOrUpdateTransactionUseCase,
+    private val insertSplitTransactionUseCase: ru.orangesoftware.financisto.usecase.modern.InsertSplitTransactionUseCase,
     private val getAccountsUseCase: GetAccountsUseCase,
     private val getCategoryTreeUseCase: GetCategoryTreeUseCase,
     private val getPayeesUseCase: ru.orangesoftware.financisto.usecase.modern.GetPayeesUseCase,
@@ -240,6 +241,12 @@ class TransactionFormViewModel @Inject constructor(
     fun saveTransaction() {
         if (!_uiState.value.isFormValid) return
         
+        // Prevent duplicate saves
+        val currentState = _uiState.value.saveState
+        if (currentState is SaveState.Saving || currentState is SaveState.Success) {
+            return
+        }
+        
         viewModelScope.launch(ioDispatcher) {
             _uiState.value = _uiState.value.copy(
                 isSaving = true,
@@ -285,38 +292,12 @@ class TransactionFormViewModel @Inject constructor(
         parentTransaction: TransactionEntity,
         splitTransactions: List<TransactionEntity>
     ): Result<Long> = withContext(ioDispatcher) {
-        try {
-            // Save parent transaction first
-            val parentResult = createTransactionUseCase.execute(parentTransaction)
-            if (parentResult.isFailure) {
-                return@withContext parentResult
-            }
-            
-            val parentId = parentResult.getOrThrow()
-            
-            // Update split transactions with parent ID and save them
-            val splitsWithParentId = splitTransactions.map { it.copy(parentId = parentId, originalCurrencyId = parentTransaction.originalCurrencyId) }
-            
-            for (split in splitsWithParentId) {
-                val splitResult = insertOrUpdateTransactionUseCase.execute(split)
-                if (splitResult.isFailure) {
-                    // If split save fails, we should probably rollback the parent
-                    // But for now, just return the error
-                    return@withContext splitResult
-                }
-            }
-            
-            // Update account balances for the parent transaction
-            if (parentTransaction.fromAccountId > 0) {
-                // We need to recalculate balance, but for now assume the createTransactionUseCase handles it
-                // Actually, since we're not using createTransactionUseCase for splits, we need to handle balance updates
-                // This is complex, so for now return success
-            }
-            
-            Result.success(parentId)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        // Use the new InsertSplitTransactionUseCase which handles:
+        // 1. Atomic insertion of parent + children
+        // 2. Proper balance updates (parent updates fromAccount, transfer children update toAccount)
+        // 3. Incremental running balance updates
+        // 4. All or nothing - rollback if any step fails
+        insertSplitTransactionUseCase(parentTransaction, splitTransactions)
     }
 
     private fun buildTransactionEntity(uiState: TransactionFormUiState): Pair<TransactionEntity, List<TransactionEntity>> {

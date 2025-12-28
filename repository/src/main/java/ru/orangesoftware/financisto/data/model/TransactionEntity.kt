@@ -111,3 +111,10 @@ data class TransactionEntity(
     @ColumnInfo(name = "original_from_amount")
     val originalFromAmount: Long = 0
 )
+
+/**
+ * Extension property to check if this transaction is a split child.
+ * A split child has a parentId > 0, linking it to a parent split transaction.
+ */
+val TransactionEntity.isSplitChild: Boolean
+    get() = parentId > 0

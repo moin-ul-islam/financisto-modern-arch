@@ -26,6 +26,7 @@ interface AccountRepository {
     suspend fun getAccountsIncludedInTotals(): List<AccountEntity>
     suspend fun searchAccounts(query: String): List<AccountEntity>
     suspend fun updateAccountBalance(accountId: Long, amount: Long, lastTransactionDate: Long)
+    suspend fun incrementAccountBalance(accountId: Long, deltaAmount: Long, lastTransactionDate: Long)
 }
 
 /**
@@ -90,5 +91,18 @@ class AccountRepositoryImpl @Inject constructor(
         lastTransactionDate: Long
     ) = withContext(ioDispatcher) {
         accountDao.updateAccountBalance(accountId, amount, lastTransactionDate)
+    }
+    
+    override suspend fun incrementAccountBalance(
+        accountId: Long,
+        deltaAmount: Long,
+        lastTransactionDate: Long
+    ) = withContext(ioDispatcher) {
+        // Perform the atomic update
+        accountDao.incrementAccountBalance(accountId, deltaAmount, lastTransactionDate)
+        // Trigger a dummy read to invalidate Room's Flow cache
+        // This ensures getAllAccountsFlow() emits the updated data
+        accountDao.getAccountById(accountId)
+        Unit
     }
 }
