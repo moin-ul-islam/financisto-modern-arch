@@ -10,9 +10,10 @@ import android.view.View;
 import android.view.Window;
 import android.widget.*;
 
-import com.mlsdev.rximagepicker.RxImageConverters;
-import com.mlsdev.rximagepicker.RxImagePicker;
-import com.mlsdev.rximagepicker.Sources;
+// TODO: Commented out due to dependency resolution issues
+// import com.mlsdev.rximagepicker.RxImageConverters;
+// import com.mlsdev.rximagepicker.RxImagePicker;
+// import com.mlsdev.rximagepicker.Sources;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -301,6 +302,9 @@ public abstract class AbstractTransactionActivity extends AbstractActivity imple
         pickImageActionGrid.addQuickAction(new MyQuickAction(this, R.drawable.ic_photo_camera, R.string.image_pick_camera));
         pickImageActionGrid.addQuickAction(new MyQuickAction(this, R.drawable.ic_photo_library, R.string.image_pick_images));
         pickImageActionGrid.setOnQuickActionClickListener((widget, position) -> {
+            // TODO: Commented out due to missing rximagepicker dependency
+            Toast.makeText(this, "Image picker functionality is currently unavailable", Toast.LENGTH_SHORT).show();
+            /*
             switch (position) {
                 case 0:
                     requestImage(Sources.CAMERA);
@@ -309,10 +313,13 @@ public abstract class AbstractTransactionActivity extends AbstractActivity imple
                     requestImage(Sources.GALLERY);
                     break;
             }
+            */
         });
     }
 
-    protected void requestImage(Sources source) {
+    // TODO: Commented out due to missing rximagepicker dependency
+    protected void requestImage(Object source) { // Changed Sources to Object to avoid compilation errors
+        /*
         transaction.blobKey = null;
         disposable.add(RxImagePicker.with(getFragmentManager()).requestImage(source)
                 .flatMap(uri -> RxImageConverters.uriToFile(this, uri, PicturesUtil.createEmptyImageFile()))
@@ -320,6 +327,8 @@ public abstract class AbstractTransactionActivity extends AbstractActivity imple
                         file -> selectPicture(file.getName()),
                         e -> Toast.makeText(AbstractTransactionActivity.this, "Unable to pick up an image: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 ));
+        */
+        Toast.makeText(this, "Image picker functionality is currently unavailable", Toast.LENGTH_LONG).show();
     }
 
     protected void createPayeeNode(LinearLayout layout) {
