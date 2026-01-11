@@ -45,6 +45,7 @@ data class BlotterItem(
     val note: String?,
     val runningBalance: Long, // This is the key field - running balance after this transaction
     val isTransfer: Boolean,
+    val isIncomingTransfer: Boolean, // True when viewing transfer from receiving account's perspective (isTransfer == -1)
     val isSplit: Boolean,
     val status: String,
     val originalCurrencyId: Long,
@@ -72,7 +73,15 @@ data class BlotterItem(
      * Get display subtitle (payee, note, or account names for transfers)
      */
     fun getDisplaySubtitle(): String = when {
-        isTransferTransaction -> "$fromAccountTitle → ${toAccountTitle ?: ""}"
+        isTransferTransaction -> {
+            // When isIncomingTransfer is true, the view has swapped account names
+            // so we need to reverse them to show the correct direction (A → B)
+            if (isIncomingTransfer) {
+                "${toAccountTitle ?: ""} → $fromAccountTitle"
+            } else {
+                "$fromAccountTitle → ${toAccountTitle ?: ""}"
+            }
+        }
         !note.isNullOrBlank() -> note
         !payeeTitle.isNullOrBlank() -> payeeTitle
         else -> ""
@@ -234,6 +243,7 @@ class GetBlotterForAccountUseCase @Inject constructor(
                     note = transaction.note,
                     runningBalance = runningBalance,
                     isTransfer = transaction.toAccountId > 0,
+                    isIncomingTransfer = false, // This use case doesn't use BlotterView, so never reversed
                     isSplit = transaction.categoryId == -1L,
                     status = transaction.status,
                     originalCurrencyId = transaction.originalCurrencyId,
@@ -384,6 +394,7 @@ class GetBlotterAllAccountsUseCase @Inject constructor(
                     note = transaction.note,
                     runningBalance = 0L, // Not applicable for all-accounts view
                     isTransfer = transaction.toAccountId > 0,
+                    isIncomingTransfer = false, // All-accounts view shows transactions as-is
                     isSplit = transaction.categoryId == -1L,
                     status = transaction.status,
                     originalCurrencyId = transaction.originalCurrencyId,

@@ -139,6 +139,7 @@ class GetBlotterViewForAccountUseCase @Inject constructor(
             note = view.note,
             runningBalance = view.fromAccountBalance ?: 0L,
             isTransfer = (view.isTransfer ?: 0L) != 0L, // is_transfer can be toAccountId or -1
+            isIncomingTransfer = (view.isTransfer ?: 0L) == -1L, // True when viewing from receiving account
             isSplit = view.categoryId == -1L, // Split category has ID -1
             status = view.status,
             originalCurrencyId = view.originalCurrencyId ?: 0L,

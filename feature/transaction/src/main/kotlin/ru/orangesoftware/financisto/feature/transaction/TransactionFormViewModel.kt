@@ -311,12 +311,14 @@ class TransactionFormViewModel @Inject constructor(
             payeeId = uiState.selectedPayee?.id ?: 0,
             fromAmount = amountInCents.toLong(),
             toAmount = if (uiState.isTransfer) {
+                // For transfers: toAmount must be POSITIVE (credit to destination account)
+                // while fromAmount is NEGATIVE (debit from source account)
                 if (uiState.isDifferentCurrency) {
                     // Convert amount using exchange rate
                     val exchangeRate = uiState.exchangeRate.toDoubleOrNull() ?: 1.0
-                    (amountInCents * exchangeRate).toLong()
+                    kotlin.math.abs((amountInCents * exchangeRate).toLong())
                 } else {
-                    amountInCents.toLong()
+                    kotlin.math.abs(amountInCents.toLong())
                 }
             } else 0,
             datetime = uiState.dateTime,
@@ -335,14 +337,14 @@ class TransactionFormViewModel @Inject constructor(
                     projectId = split.projectId ?: 0,
                     fromAmount = split.amount * split.type,
                     toAmount = if (uiState.isTransfer) {
-                        // For splits in transfers, we need to calculate proportionally
-                        // For now, assume same proportion as main transaction
+                        // For split transfers: toAmount must be POSITIVE (credit to destination)
+                        // Use absolute value of the split amount
                         if (uiState.isDifferentCurrency) {
                             val exchangeRate = uiState.exchangeRate.toDoubleOrNull() ?: 1.0
-                            (split.amount * exchangeRate / 100.0).toLong() * 100
+                            kotlin.math.abs((split.amount * exchangeRate).toLong())
                         } else {
-                            split.amount
-                        } * split.amount * -1
+                            kotlin.math.abs(split.amount)
+                        }
                     } else 0,
                     datetime = uiState.dateTime,
                     note = split.note,
