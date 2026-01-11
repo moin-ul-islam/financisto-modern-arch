@@ -55,7 +55,7 @@ import ru.orangesoftware.financisto.data.model.*
         AttributeView::class,
         BlotterView::class
     ],
-    version = 5,
+    version = 7,
     exportSchema = true
 )
 abstract class FinancistoDatabase : RoomDatabase() {

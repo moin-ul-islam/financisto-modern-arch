@@ -12,6 +12,9 @@ import androidx.room.ColumnInfo
  * 2. Transactions from the perspective of the to_account (incoming transfers with swapped amounts and is_transfer=-1)
  *
  * This allows an account blotter to show both outgoing and incoming transfers as separate rows.
+ * 
+ * Note: Uses LEFT OUTER JOIN for category to support synthetic categories (split=-1, no-category=0)
+ * that don't exist in the category table. Use case layer handles null category titles.
  */
 @DatabaseView(
     viewName = "v_blotter",
@@ -26,7 +29,7 @@ import androidx.room.ColumnInfo
 	a2._id as to_account_id,
 	a2.title as to_account_title,
 	a2.currency_id as to_account_currency_id,
-	cat._id as category_id,
+	t.category_id as category_id,
 	cat.title as category_title,
 	cat.`left` as category_left,
 	cat.`right` as category_right,
@@ -57,7 +60,7 @@ FROM
 	transactions as t
 	INNER JOIN account as a ON a._id=t.from_account_id
 	INNER JOIN currency as c ON c._id=a.currency_id
-	INNER JOIN category as cat ON cat._id=t.category_id
+	LEFT OUTER JOIN category as cat ON cat._id=t.category_id
 	LEFT OUTER JOIN running_balance as rb ON rb.transaction_id=(CASE WHEN t.parent_id=0 THEN t._id ELSE t.parent_id END) AND rb.account_id=t.from_account_id
 	LEFT OUTER JOIN account as a2 ON a2._id=t.to_account_id
 	LEFT OUTER JOIN locations as loc ON loc._id=t.location_id
@@ -75,7 +78,7 @@ SELECT
 	a2._id as to_account_id,
 	a2.title as to_account_title,
 	a2.currency_id as to_account_currency_id,
-	cat._id as category_id,
+	t.category_id as category_id,
 	cat.title as category_title,
 	cat.`left` as category_left,
 	cat.`right` as category_right,
@@ -106,7 +109,7 @@ FROM
 	transactions as t
 	INNER JOIN account as a ON a._id=t.to_account_id
 	INNER JOIN currency as c ON c._id=a.currency_id
-	INNER JOIN category as cat ON cat._id=t.category_id
+	LEFT OUTER JOIN category as cat ON cat._id=t.category_id
 	LEFT OUTER JOIN running_balance as rb ON rb.transaction_id=t._id AND rb.account_id=t.to_account_id
 	LEFT OUTER JOIN account as a2 ON a2._id=t.from_account_id
 	LEFT OUTER JOIN locations as loc ON loc._id=t.location_id
@@ -147,16 +150,16 @@ data class BlotterView(
     val categoryId: Long,
 
     @ColumnInfo(name = "category_title")
-    val categoryTitle: String,
+    val categoryTitle: String?,
 
     @ColumnInfo(name = "category_left")
-    val categoryLeft: Int,
+    val categoryLeft: Int?,
 
     @ColumnInfo(name = "category_right")
-    val categoryRight: Int,
+    val categoryRight: Int?,
 
     @ColumnInfo(name = "category_type")
-    val categoryType: Int,
+    val categoryType: Int?,
 
     @ColumnInfo(name = "project_id")
     val projectId: Long?,
