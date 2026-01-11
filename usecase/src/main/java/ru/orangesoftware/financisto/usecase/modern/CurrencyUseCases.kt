@@ -99,27 +99,3 @@ class UpdateCurrencyUseCase @Inject constructor(
         }
     }
 }
-
-/**
- * Use case for deleting a currency
- */
-@Singleton
-class DeleteCurrencyUseCase @Inject constructor(
-    private val currencyRepository: CurrencyRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) {
-
-    suspend fun execute(currencyId: Long): Result<Boolean> = withContext(ioDispatcher) {
-        try {
-            val currency = currencyRepository.getCurrencyById(currencyId)
-            if (currency != null) {
-                val success = currencyRepository.deleteCurrency(currency)
-                Result.success(success)
-            } else {
-                Result.failure(Exception("Currency not found"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}

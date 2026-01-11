@@ -264,12 +264,7 @@ class GetBlotterForAccountUseCase @Inject constructor(
 @Singleton
 class ObserveBlotterForAccountUseCase @Inject constructor(
     private val transactionDao: TransactionDao,
-    private val runningBalanceDao: RunningBalanceDao,
-    private val accountRepository: AccountRepository,
-    private val categoryRepository: CategoryRepository,
-    private val payeeRepository: PayeeRepository,
-    private val getBlotterForAccountUseCase: GetBlotterForAccountUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    private val getBlotterForAccountUseCase: GetBlotterForAccountUseCase
 ) {
 
     /**

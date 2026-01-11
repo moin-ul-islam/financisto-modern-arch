@@ -65,52 +65,6 @@ class GetCategoryTreeUseCase @Inject constructor(
 }
 
 /**
- * Use case for getting categories without subtrees.
- * This is used when editing categories to avoid circular references.
- */
-@Singleton
-class GetCategoriesWithoutSubtreeUseCase @Inject constructor(
-    private val categoryRepository: CategoryRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) {
-
-    /**
-     * Gets all categories except those in a specific subtree.
-     * This prevents circular references when moving categories.
-     *
-     * @param excludeCategoryId The root category ID of the subtree to exclude
-     * @param includeInactive Whether to include inactive categories
-     * @return Result with list of categories excluding the subtree
-     */
-    suspend fun execute(excludeCategoryId: Long, includeInactive: Boolean = false): Result<List<CategoryView>> = withContext(ioDispatcher) {
-        try {
-            // Get the category to exclude to find its left/right bounds
-            val excludeCategory = categoryRepository.getCategoryWithLevelById(excludeCategoryId)
-
-            if (excludeCategory == null) {
-                // If category doesn't exist, return all categories
-                val allCategories = if (includeInactive) {
-                    categoryRepository.getAllCategoriesWithLevel()
-                } else {
-                    categoryRepository.getAllCategoriesWithLevel()
-                }
-                return@withContext Result.success(allCategories)
-            }
-
-            // Get all categories and filter out the subtree
-            val allCategories = categoryRepository.getAllCategoriesWithLevel()
-            val filteredCategories = allCategories.filterNot { category ->
-                category.left >= excludeCategory.left && category.right <= excludeCategory.right
-            }
-
-            Result.success(filteredCategories)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
-/**
  * Use case for inserting a new category with proper hierarchy management.
  */
 @Singleton
@@ -130,44 +84,6 @@ class InsertCategoryUseCase @Inject constructor(
     suspend fun execute(category: CategoryEntity): Result<Long> = withContext(ioDispatcher) {
         try {
             val categoryId = categoryRepository.insertCategory(category)
-            Result.success(categoryId)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
-/**
- * Use case for moving a category within the hierarchy.
- * This is a complex operation that requires updating the nested set model.
- */
-@Singleton
-class MoveCategoryUseCase @Inject constructor(
-    private val categoryRepository: CategoryRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) {
-
-    /**
-     * Moves a category to a new parent in the hierarchy.
-     * This requires complex updates to the nested set model (left/right values).
-     *
-     * Note: This is a simplified implementation. A full implementation would
-     * require updating all affected left/right values in the tree.
-     *
-     * @param categoryId The category to move
-     * @param newParentId The new parent category ID (0 for root level)
-     * @return Result indicating success or failure
-     */
-    suspend fun execute(categoryId: Long, newParentId: Long): Result<Long> = withContext(ioDispatcher) {
-        try {
-            // This is a placeholder implementation
-            // In a real implementation, this would involve:
-            // 1. Getting the category and its subtree bounds
-            // 2. Calculating new left/right values
-            // 3. Updating all affected categories in the hierarchy
-            // 4. Ensuring no circular references
-
-            // For now, just return success
             Result.success(categoryId)
         } catch (e: Exception) {
             Result.failure(e)

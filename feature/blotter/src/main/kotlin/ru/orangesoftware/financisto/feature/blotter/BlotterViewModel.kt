@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.usecase.modern.BlotterItem
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterAllAccountsUseCase
-import ru.orangesoftware.financisto.usecase.modern.GetBlotterForAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterViewForAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.ObserveBlotterForAccountUseCase
 import javax.inject.Inject
@@ -33,7 +32,6 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class BlotterViewModel @Inject constructor(
-    private val getBlotterForAccountUseCase: GetBlotterForAccountUseCase,
     private val getBlotterAllAccountsUseCase: GetBlotterAllAccountsUseCase,
     private val observeBlotterForAccountUseCase: ObserveBlotterForAccountUseCase,
     private val getBlotterViewUsecase: GetBlotterViewForAccountUseCase,
