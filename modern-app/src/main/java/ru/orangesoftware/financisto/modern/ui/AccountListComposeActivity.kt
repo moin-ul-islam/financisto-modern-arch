@@ -79,8 +79,7 @@ private fun AccountNavigationGraph(
                     navController.navigate("transaction_form?accountId=$accountId")
                 },
                 onNavigateToAddTransfer = { accountId ->
-                    // TODO: Implement transfer navigation
-                    android.util.Log.d("Navigation", "Navigate to add transfer for account: $accountId")
+                    navController.navigate("transaction_form?accountId=$accountId&isTransfer=true")
                 },
                 onNavigateToUpdateBalance = { accountId ->
                     // TODO: Implement update balance navigation
@@ -192,7 +191,7 @@ private fun AccountNavigationGraph(
         }
         
         composable(
-            route = "transaction_form?accountId={accountId}&transactionId={transactionId}",
+            route = "transaction_form?accountId={accountId}&transactionId={transactionId}&isTransfer={isTransfer}",
             arguments = listOf(
                 navArgument("accountId") { 
                     type = NavType.LongType
@@ -201,6 +200,10 @@ private fun AccountNavigationGraph(
                 navArgument("transactionId") { 
                     type = NavType.LongType
                     defaultValue = -1L
+                },
+                navArgument("isTransfer") {
+                    type = NavType.BoolType
+                    defaultValue = false
                 }
             )
         ) { backStackEntry ->

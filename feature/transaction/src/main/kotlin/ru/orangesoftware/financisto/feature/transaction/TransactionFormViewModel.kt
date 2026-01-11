@@ -162,8 +162,9 @@ class TransactionFormViewModel @Inject constructor(
         val transactionId = savedStateHandle.get<Long>("transactionId") ?: -1L
         val accountId = savedStateHandle.get<Long>("accountId") ?: -1L
         val isTemplate = savedStateHandle.get<Boolean>("isTemplate") ?: false
+        val isTransfer = savedStateHandle.get<Boolean>("isTransfer") ?: false
         
-        loadInitialData(transactionId, accountId, isTemplate)
+        loadInitialData(transactionId, accountId, isTemplate, isTransfer)
     }
 
     /**
@@ -366,7 +367,7 @@ class TransactionFormViewModel @Inject constructor(
         return Pair(parentTransaction, splitTransactions)
     }
 
-    private fun loadInitialData(transactionId: Long, accountId: Long, isTemplate: Boolean) {
+    private fun loadInitialData(transactionId: Long, accountId: Long, isTemplate: Boolean, isTransfer: Boolean = false) {
         viewModelScope.launch(ioDispatcher) {
             _uiState.value = _uiState.value.copy(screenState = TransactionFormScreenState.Loading)
             
@@ -452,7 +453,8 @@ class TransactionFormViewModel @Inject constructor(
                     availableProjects = projectOptions,
                     isTemplate = isTemplate,
                     isEditMode = transactionId > 0,
-                    transactionId = transactionId
+                    transactionId = transactionId,
+                    isTransfer = isTransfer
                 )
 
                 // Pre-select account if provided
