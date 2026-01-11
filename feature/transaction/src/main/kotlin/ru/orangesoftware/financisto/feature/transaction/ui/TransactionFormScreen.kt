@@ -193,7 +193,8 @@ private fun TransactionFormContent(
                 },
                 onToggleIncomeExpense = {
                     onAction(TransactionFormAction.ToggleIncomeExpense)
-                }
+                },
+                isTransfer = uiState.isTransfer
             )
 
             // Form fields card that overlaps with header slightly

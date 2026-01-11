@@ -301,7 +301,13 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     private fun buildTransactionEntity(uiState: TransactionFormUiState): Pair<TransactionEntity, List<TransactionEntity>> {
-        val amountInCents = (uiState.amount.toDoubleOrNull() ?: 0.0) * if (uiState.isIncome) 100 else -100
+        // For transfers, amount should always be negative (expense from source account)
+        // For regular transactions, use isIncome to determine sign
+        val amountInCents = if (uiState.isTransfer) {
+            (uiState.amount.toDoubleOrNull() ?: 0.0) * -100  // Always negative for transfers
+        } else {
+            (uiState.amount.toDoubleOrNull() ?: 0.0) * if (uiState.isIncome) 100 else -100
+        }
         
         val parentTransaction = TransactionEntity(
             fromAccountId = uiState.selectedAccount?.id ?: 0,

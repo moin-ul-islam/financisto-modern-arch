@@ -35,7 +35,8 @@ fun AmountHeaderCard(
     isIncome: Boolean,
     onAmountChanged: (String) -> Unit,
     onToggleIncomeExpense: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isTransfer: Boolean = false
 ) {
     // Animate background gradient based on income/expense
     val gradientColors = if (isIncome) {
@@ -79,11 +80,13 @@ fun AmountHeaderCard(
                 
                 Spacer(modifier = Modifier.height(Spacing.Large))
                 
-                // Income/Expense Toggle Buttons
-                IncomeExpenseToggleButtons(
-                    isIncome = isIncome,
-                    onToggle = onToggleIncomeExpense
-                )
+                // Income/Expense Toggle Buttons (only for non-transfer transactions)
+                if (!isTransfer) {
+                    IncomeExpenseToggleButtons(
+                        isIncome = isIncome,
+                        onToggle = onToggleIncomeExpense
+                    )
+                }
             }
         }
     }
