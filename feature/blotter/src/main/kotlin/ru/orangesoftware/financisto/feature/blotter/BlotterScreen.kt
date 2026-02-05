@@ -29,17 +29,19 @@ import java.util.*
 
 /**
  * Blotter screen showing list of transactions with running balance.
- * 
+ *
  * This can show:
  * - All transactions across all accounts (no running balance)
  * - Transactions for a specific account (with running balance)
- * 
+ *
  * @param accountId If null, shows all accounts. If specified, shows only that account with running balance.
+ * @param onNavigateToNewTransaction Callback to navigate to new transaction screen with optional accountId
  * @param viewModel The ViewModel instance (injected by Hilt)
  */
 @Composable
 fun BlotterScreen(
     accountId: Long? = null,
+    onNavigateToNewTransaction: ((Long?) -> Unit)? = null,
     viewModel: BlotterViewModel = hiltViewModel()
 ) {
     val viewData by viewModel.viewData.collectAsStateWithLifecycle()
@@ -61,6 +63,18 @@ fun BlotterScreen(
                 totalBalance = viewData.totalBalance,
                 showRunningBalance = viewData.showRunningBalance
             )
+        },
+        floatingActionButton = {
+            if (onNavigateToNewTransaction != null) {
+                FloatingActionButton(
+                    onClick = { onNavigateToNewTransaction(accountId) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add transaction"
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         when {

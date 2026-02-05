@@ -49,32 +49,32 @@ class BlotterViewModel @Inject constructor(
          * Load transactions for all accounts
          */
         data object LoadAllTransactions : Input
-        
+
         /**
          * Load transactions for a specific account with running balance
          */
         data class LoadAccountTransactions(val accountId: Long) : Input
-        
+
         /**
          * Refresh the current view
          */
         data object Refresh : Input
-        
+
         /**
          * Navigate to transaction details
          */
         data class ShowTransactionDetails(val transactionId: Long) : Input
-        
+
         /**
          * Navigate to edit transaction
          */
         data class EditTransaction(val transactionId: Long) : Input
-        
+
         /**
          * Delete a transaction
          */
         data class DeleteTransaction(val transactionId: Long) : Input
-        
+
         /**
          * Clear any error state
          */
@@ -186,9 +186,9 @@ class BlotterViewModel @Inject constructor(
      */
     private fun refresh() {
         val currentAccountId = _viewData.value.accountId
-        
+
         _viewData.value = _viewData.value.copy(isRefreshing = true)
-        
+
         if (currentAccountId != null) {
             loadAccountTransactions(currentAccountId)
         } else {

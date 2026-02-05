@@ -296,9 +296,12 @@ private fun AccountNavigationGraph(
             )
         ) { backStackEntry ->
             val accountId = backStackEntry.arguments?.getLong("accountId") ?: -1L
-            
+
             ru.orangesoftware.financisto.feature.blotter.BlotterScreen(
-                accountId = accountId
+                accountId = accountId,
+                onNavigateToNewTransaction = { selectedAccountId ->
+                    navController.navigate("transaction_form?accountId=${selectedAccountId ?: -1L}")
+                }
             )
         }
 
