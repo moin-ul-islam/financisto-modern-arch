@@ -59,6 +59,7 @@ fun BlotterScreen(
         topBar = {
             BlotterTopBar(
                 accountId = accountId,
+                accountName = viewData.accountName,
                 formattedTotalBalance = viewData.formattedTotalBalance,
                 totalBalance = viewData.totalBalance,
                 showRunningBalance = viewData.showRunningBalance
@@ -110,6 +111,7 @@ fun BlotterScreen(
 @Composable
 private fun BlotterTopBar(
     accountId: Long?,
+    accountName: String?,
     formattedTotalBalance: String?,
     totalBalance: Long?,
     showRunningBalance: Boolean
@@ -118,7 +120,13 @@ private fun BlotterTopBar(
         title = {
             Column {
                 Text(
-                    text = if (accountId != null) "Account Blotter" else "All Transactions",
+                    text = if (accountId != null && accountName != null) {
+                        "Blotter: $accountName"
+                    } else if (accountId != null) {
+                        "Account Blotter"
+                    } else {
+                        "All Transactions"
+                    },
                     style = MaterialTheme.typography.titleLarge
                 )
                 if (showRunningBalance && formattedTotalBalance != null && totalBalance != null) {

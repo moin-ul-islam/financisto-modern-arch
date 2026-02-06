@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ru.orangesoftware.financisto.di.IoDispatcher
 import ru.orangesoftware.financisto.usecase.modern.BlotterItem
+import ru.orangesoftware.financisto.usecase.modern.GetAccountByIdUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterAllAccountsUseCase
 import ru.orangesoftware.financisto.usecase.modern.GetBlotterViewForAccountUseCase
 import ru.orangesoftware.financisto.usecase.modern.ObserveBlotterForAccountUseCase
@@ -35,6 +36,7 @@ class BlotterViewModel @Inject constructor(
     private val getBlotterAllAccountsUseCase: GetBlotterAllAccountsUseCase,
     private val observeBlotterForAccountUseCase: ObserveBlotterForAccountUseCase,
     private val getBlotterViewUsecase: GetBlotterViewForAccountUseCase,
+    private val getAccountByIdUseCase: GetAccountByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -90,6 +92,7 @@ class BlotterViewModel @Inject constructor(
         val isRefreshing: Boolean = false,
         val error: String? = null,
         val accountId: Long? = null, // null = all accounts, otherwise specific account
+        val accountName: String? = null, // Account name (only for single account view)
         val showRunningBalance: Boolean = false, // true when viewing single account
         val totalBalance: Long? = null, // Account balance (only for single account view)
         val formattedTotalBalance: String? = null // Formatted total balance with currency
@@ -152,7 +155,11 @@ class BlotterViewModel @Inject constructor(
                 accountId = accountId,
                 showRunningBalance = true
             )
-            
+
+            // Get account name
+            val account = getAccountByIdUseCase.execute(accountId)
+            val accountName = account?.title
+
 //            getBlotterForAccountUseCase.execute(
 //                accountId = accountId,
 //                ensureBalanceCalculated = false
@@ -162,11 +169,12 @@ class BlotterViewModel @Inject constructor(
                     // Get total balance from first item (most recent transaction has current balance)
                     val totalBalance = items.firstOrNull()?.runningBalance
                     val formattedTotalBalance = items.firstOrNull()?.formattedRunningBalance
-                    
+
                     _viewData.value = _viewData.value.copy(
                         items = items,
                         isLoading = false,
                         isRefreshing = false,
+                        accountName = accountName,
                         totalBalance = totalBalance,
                         formattedTotalBalance = formattedTotalBalance
                     )
@@ -241,7 +249,11 @@ class BlotterViewModel @Inject constructor(
                 accountId = accountId,
                 showRunningBalance = true
             )
-            
+
+            // Get account name
+            val account = getAccountByIdUseCase.execute(accountId)
+            val accountName = account?.title
+
             observeBlotterForAccountUseCase.execute(accountId)
                 .catch { exception ->
                     _viewData.value = _viewData.value.copy(
@@ -252,11 +264,12 @@ class BlotterViewModel @Inject constructor(
                 .collect { items ->
                     val totalBalance = items.firstOrNull()?.runningBalance
                     val formattedTotalBalance = items.firstOrNull()?.formattedRunningBalance
-                    
+
                     _viewData.value = _viewData.value.copy(
                         items = items,
                         isLoading = false,
                         isRefreshing = false,
+                        accountName = accountName,
                         totalBalance = totalBalance,
                         formattedTotalBalance = formattedTotalBalance,
                         error = null
